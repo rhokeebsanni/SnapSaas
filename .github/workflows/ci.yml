@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Typecheck, lint & build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (web)
+        run: npm run build --workspace web
+        env:
+          # Dummy values so the build can run without real secrets in CI.
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          DATABASE_URL: postgresql://user:pass@localhost:5432/snapsaas
+          BETTER_AUTH_SECRET: ci-dummy-secret-ci-dummy-secret-32
+          BETTER_AUTH_URL: http://localhost:3000
+
+      - name: Build (worker)
+        run: npm run build --workspace worker

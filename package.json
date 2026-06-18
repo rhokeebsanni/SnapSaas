@@ -1,0 +1,39 @@
+{
+  "name": "snapsaas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Turn any website URL into launch-ready marketing screenshots in seconds.",
+  "workspaces": [
+    "web",
+    "worker"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,worker -c blue,magenta \"npm:dev:web\" \"npm:dev:worker\"",
+    "dev:web": "npm run dev --workspace web",
+    "dev:worker": "npm run dev --workspace worker",
+    "build": "npm run build --workspace web && npm run build --workspace worker",
+    "start:web": "npm run start --workspace web",
+    "start:worker": "npm run start --workspace worker",
+    "typecheck": "npm run typecheck --workspace web && npm run typecheck --workspace worker",
+    "lint": "npm run lint --workspace web && npm run lint --workspace worker",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "npm run db:generate --workspace web",
+    "db:migrate": "npm run db:migrate --workspace web",
+    "db:push": "npm run db:push --workspace web",
+    "db:studio": "npm run db:studio --workspace web",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

@@ -1,4 +1,6 @@
-import { boolean, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+
+import type { CaptureSettings } from '@/lib/capture';
 
 /**
  * Auth tables follow the Better Auth core schema (model names `user`,
@@ -68,5 +70,56 @@ export const verification = pgTable('verification', {
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()),
 });
 
+/**
+ * Product tables: a `project` is one source URL, a `job` is one capture run
+ * (queued → processing → done/failed), and `asset` rows are the rendered
+ * outputs stored in R2.
+ */
+
+export const project = pgTable('project', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  sourceUrl: text('source_url').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const job = pgTable('job', {
+  id: text('id').primaryKey(),
+  projectId: text('project_id')
+    .notNull()
+    .references(() => project.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  status: text('status').notNull().default('queued'),
+  settings: jsonb('settings').$type<CaptureSettings>().notNull(),
+  error: text('error'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const asset = pgTable('asset', {
+  id: text('id').primaryKey(),
+  jobId: text('job_id')
+    .notNull()
+    .references(() => job.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  r2Key: text('r2_key').notNull(),
+  url: text('url').notNull(),
+  format: text('format').notNull(),
+  width: integer('width').notNull(),
+  height: integer('height').notNull(),
+  hasWatermark: boolean('has_watermark').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
+export type Project = typeof project.$inferSelect;
+export type Job = typeof job.$inferSelect;
+export type Asset = typeof asset.$inferSelect;

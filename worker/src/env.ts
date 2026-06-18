@@ -11,6 +11,16 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(4000),
   INTERNAL_API_SECRET: z.string().min(1).default('dev-internal-secret-change-me'),
+
+  // Optional integrations — the worker still boots (health + /render) without
+  // them, but the async queue consumer only starts when DB + Redis are present.
+  DATABASE_URL: z.string().optional(),
+  REDIS_URL: z.string().optional(),
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+  R2_PUBLIC_URL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

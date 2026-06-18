@@ -6,6 +6,7 @@ import { env } from './env';
 import { captureSettingsSchema } from './schema';
 import { renderCapture } from './render';
 import { closeBrowser } from './capture/browser';
+import { startCaptureWorker } from './queue/worker';
 import { BACKGROUNDS, FRAMES } from './config/templates';
 import type { CaptureSettings, OutputFormat } from './types';
 
@@ -66,8 +67,12 @@ const server = app.listen(env.PORT, () => {
   console.log(`🛠️  SnapSaas worker listening on http://localhost:${env.PORT}`);
 });
 
+// Start the async capture consumer (no-op when Redis/DB aren't configured).
+const captureWorker = startCaptureWorker();
+
 async function shutdown(signal: string) {
   console.log(`Received ${signal}, shutting down worker...`);
+  await captureWorker?.close().catch(() => undefined);
   await closeBrowser();
   server.close(() => process.exit(0));
   setTimeout(() => process.exit(1), 10_000).unref();

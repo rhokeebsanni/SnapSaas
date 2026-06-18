@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 const NAV = [
   { href: '/#features', label: 'Features' },
   { href: '/#gallery', label: 'Gallery' },
-  { href: '/#pricing', label: 'Pricing' },
+  { href: '/pricing', label: 'Pricing' },
 ];
 
 export function SiteHeader() {

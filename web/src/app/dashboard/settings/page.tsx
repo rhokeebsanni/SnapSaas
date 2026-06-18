@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { getServerSession } from '@/lib/session';
-import { getAccount } from '@/lib/account';
+import { getAccount, getSubscription } from '@/lib/account';
 
 export const metadata: Metadata = { title: 'Settings' };
 
@@ -13,6 +14,7 @@ export default async function SettingsPage() {
   if (!session) redirect('/sign-in');
 
   const account = await getAccount(session.user.id);
+  const sub = await getSubscription(session.user.id);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -41,13 +43,34 @@ export default async function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Plan &amp; billing</CardTitle>
-          <CardDescription>Billing management arrives with payments.</CardDescription>
+          <CardDescription>Manage your subscription and payment details.</CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Current plan</span>
-          <Badge variant={account.plan.id === 'free' ? 'secondary' : 'brand'}>
-            {account.plan.name}
-          </Badge>
+        <CardContent className="space-y-4 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Current plan</span>
+            <Badge variant={account.plan.id === 'free' ? 'secondary' : 'brand'}>
+              {account.plan.name}
+            </Badge>
+          </div>
+          {sub && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Status</span>
+              <span className="font-medium capitalize">{sub.status.replace('_', ' ')}</span>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2 pt-2">
+            {sub?.customerPortalUrl ? (
+              <Button variant="outline" asChild>
+                <a href={sub.customerPortalUrl} target="_blank" rel="noopener noreferrer">
+                  Manage billing
+                </a>
+              </Button>
+            ) : (
+              <Button variant="brand" asChild>
+                <a href="/pricing">{account.plan.id === 'free' ? 'Upgrade' : 'View plans'}</a>
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

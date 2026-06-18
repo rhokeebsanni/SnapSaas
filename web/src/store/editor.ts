@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { toast } from 'sonner';
 
 import type { CaptureMode, FrameId, OutputFormat, OutputScale } from '@/lib/capture';
 
@@ -75,6 +76,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const trimmed = url.trim();
     if (!trimmed) {
       set({ error: 'Enter a URL to capture.', status: 'failed' });
+      toast.error('Enter a URL to capture.');
       return;
     }
     const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
@@ -90,7 +92,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        set({ status: 'failed', error: data.error ?? 'Could not start the capture.' });
+        const message = data.error ?? 'Could not start the capture.';
+        set({ status: 'failed', error: message });
+        toast.error(message);
         return;
       }
       jobId = data.jobId;
@@ -111,10 +115,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         if (data.status === 'processing') set({ status: 'processing' });
         if (data.status === 'done') {
           set({ status: 'done', assets: data.assets ?? [] });
+          toast.success('Your screenshots are ready!');
           return;
         }
         if (data.status === 'failed') {
-          set({ status: 'failed', error: data.error ?? 'The capture failed.' });
+          const message = data.error ?? 'The capture failed.';
+          set({ status: 'failed', error: message });
+          toast.error(message);
           return;
         }
       } catch {
@@ -122,5 +129,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       }
     }
     set({ status: 'failed', error: 'Timed out waiting for the capture.' });
+    toast.error('Timed out waiting for the capture.');
   },
 }));

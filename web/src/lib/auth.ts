@@ -5,6 +5,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 
 import { db, schema } from '@/db';
+import { sendVerificationEmail, sendWelcomeEmail } from '@/lib/email';
 
 // Only register an OAuth provider when both halves of its credential pair are
 // present, so a partially-configured environment never wires up a broken button.
@@ -43,8 +44,22 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
-    // Real verification emails are wired up in Phase 7 (Resend).
+    // Verification is optional so the app works before email is configured.
     requireEmailVerification: false,
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendVerificationEmail(user.email, url);
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (createdUser) => {
+          await sendWelcomeEmail(createdUser.email, createdUser.name);
+        },
+      },
+    },
   },
   socialProviders: {
     ...googleProvider,

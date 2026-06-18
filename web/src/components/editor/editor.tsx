@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import { Download, ImageOff, LoaderCircle, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,24 @@ export function Editor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUrl]);
 
+  const runGenerate = React.useCallback(() => {
+    const st = useEditorStore.getState();
+    if (st.status === 'submitting' || st.status === 'queued' || st.status === 'processing') return;
+    track('capture_started', { frame: st.frame, background: st.background });
+    void st.generate();
+  }, []);
+
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runGenerate();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [runGenerate]);
+
   const busy = s.status === 'submitting' || s.status === 'queued' || s.status === 'processing';
   const bg = getBackground(s.background);
   const shownAsset = s.assets.find((a) => a.format === s.format) ?? s.assets[0] ?? null;
@@ -60,7 +79,7 @@ export function Editor({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            void s.generate();
+            runGenerate();
           }}
           className="space-y-2"
         >

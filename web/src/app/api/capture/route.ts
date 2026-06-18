@@ -10,11 +10,20 @@ import { captureSettingsSchema, type CaptureSettings, type OutputScale } from '@
 import { assertPublicUrl } from '@/lib/url-safety';
 import { enqueueCapture, isQueueConfigured } from '@/lib/queue';
 import { BACKGROUNDS } from '@/lib/templates';
+import { checkCaptureRateLimit } from '@/lib/ratelimit';
 
 export async function POST(request: Request) {
   const session = await getServerSession();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const rl = await checkCaptureRateLimit(`user:${session.user.id}`);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Too many captures right now — give it a moment and try again.' },
+      { status: 429 },
+    );
   }
 
   if (!isQueueConfigured()) {

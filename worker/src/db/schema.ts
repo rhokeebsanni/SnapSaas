@@ -8,6 +8,12 @@ import type { CaptureSettings } from '../types';
  * assets. Keep these column definitions in sync with web/src/db/schema.ts.
  */
 
+export const user = pgTable('user', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+});
+
 export const job = pgTable('job', {
   id: text('id').primaryKey(),
   projectId: text('project_id').notNull(),

@@ -7,6 +7,7 @@ import { getDb, schema } from '../db';
 import { captureScreenshot } from '../capture/browser';
 import { composeAsset } from '../compositing/compose';
 import { uploadAsset, isR2Configured } from '../storage/r2';
+import { sendAssetsReadyEmail } from '../email';
 import {
   CAPTURE_QUEUE_NAME,
   OUTPUT_FORMATS,
@@ -56,6 +57,16 @@ async function processCapture(bullJob: BullJob<CaptureJobData>): Promise<void> {
     .update(schema.job)
     .set({ status: 'done', error: null, updatedAt: new Date() })
     .where(eq(schema.job.id, jobId));
+
+  // Notify the user (best-effort, env-gated).
+  const owner = await db
+    .select({ email: schema.user.email, name: schema.user.name })
+    .from(schema.user)
+    .where(eq(schema.user.id, row.userId))
+    .limit(1);
+  if (owner[0]) {
+    await sendAssetsReadyEmail(owner[0].email, owner[0].name).catch(() => undefined);
+  }
 }
 
 function redisConnection(url: string): RedisOptions {

@@ -8,6 +8,7 @@ import { LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordField } from '@/components/auth/password-field';
 import { signIn } from '@/lib/auth-client';
 
 export function SignInForm() {
@@ -51,10 +52,9 @@ export function SignInForm() {
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Password</Label>
         </div>
-        <Input
+        <PasswordField
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           required
           placeholder="••••••••"

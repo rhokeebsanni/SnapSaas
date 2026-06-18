@@ -8,6 +8,13 @@
       "when": 1781799438883,
       "tag": "0000_goofy_captain_cross",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781803959172,
+      "tag": "0001_thankful_alex_power",
+      "breakpoints": true
     }
   ]
 }

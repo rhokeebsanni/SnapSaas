@@ -31,3 +31,16 @@ export interface RenderOutput {
 
 export const DEFAULT_VIEWPORT_WIDTH = 1280;
 export const DEFAULT_VIEWPORT_HEIGHT = 800;
+
+/** Must match the web app's CAPTURE_QUEUE_NAME. */
+export const CAPTURE_QUEUE_NAME = 'snapsaas:capture';
+
+export interface CaptureJobData {
+  jobId: string;
+}
+
+export const OUTPUT_FORMATS: OutputFormat[] = ['png', 'jpeg', 'webp'];
+
+export function fileExtension(format: OutputFormat): string {
+  return format === 'jpeg' ? 'jpg' : format;
+}

@@ -6,16 +6,21 @@ import { ArrowRight, ImageIcon, Sparkles, Wand2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CaptureCard } from '@/components/dashboard/capture-card';
 import { getServerSession } from '@/lib/session';
 import { getAccount } from '@/lib/account';
+import { getRecentCaptures } from '@/lib/projects';
 
 export const metadata: Metadata = { title: 'Dashboard' };
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const session = await getServerSession();
   if (!session) redirect('/sign-in');
 
   const account = await getAccount(session.user.id);
+  const recent = await getRecentCaptures(session.user.id, 6);
   const limit = account.plan.limits.capturesPerMonth;
   const limitLabel = limit < 0 ? 'Unlimited' : String(limit);
 
@@ -88,12 +93,30 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="flex items-center gap-2 text-3xl font-bold">
-              <ImageIcon className="text-muted-foreground size-6" /> 0
+              <ImageIcon className="text-muted-foreground size-6" /> {recent.length}
             </p>
-            <p className="text-muted-foreground text-xs">No captures yet</p>
+            <p className="text-muted-foreground text-xs">
+              {recent.length === 0 ? 'No captures yet' : 'Recent captures'}
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {recent.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Recent captures</h2>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/dashboard/projects">View all</Link>
+            </Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {recent.map((c) => (
+              <CaptureCard key={c.jobId} capture={c} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {account.plan.id === 'free' && (
         <Card>

@@ -9,6 +9,7 @@ import { getAccount } from '@/lib/account';
 import { captureSettingsSchema, type CaptureSettings, type OutputScale } from '@/lib/capture';
 import { assertPublicUrl } from '@/lib/url-safety';
 import { enqueueCapture, isQueueConfigured } from '@/lib/queue';
+import { BACKGROUNDS } from '@/lib/templates';
 
 export async function POST(request: Request) {
   const session = await getServerSession();
@@ -40,8 +41,17 @@ export async function POST(request: Request) {
     );
   }
 
+  // Validate the background and gate Pro-only templates.
+  const bgOption = BACKGROUNDS.find((b) => b.id === parsed.data.background);
+  if (!bgOption) {
+    return NextResponse.json({ error: 'Unknown background' }, { status: 400 });
+  }
+
   // Plan + credit gating.
   const account = await getAccount(session.user.id);
+  if (bgOption.tier === 'pro' && !account.plan.limits.allTemplates) {
+    return NextResponse.json({ error: 'That background is a Pro feature.' }, { status: 403 });
+  }
   const finiteCredits = account.plan.limits.capturesPerMonth >= 0;
   if (finiteCredits && account.credits <= 0) {
     return NextResponse.json(

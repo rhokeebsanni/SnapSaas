@@ -1,9 +1,9 @@
 import 'server-only';
 
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 import { db } from '@/db';
-import { user } from '@/db/schema';
+import { subscription, user } from '@/db/schema';
 import { PLANS, type Plan, type PlanId } from '@/lib/plans';
 
 export interface Account {
@@ -25,4 +25,15 @@ export async function getAccount(userId: string): Promise<Account> {
     plan: PLANS[planId] ?? PLANS.free,
     credits: row?.credits ?? 0,
   };
+}
+
+/** The user's latest subscription row (for the billing portal + status). */
+export async function getSubscription(userId: string) {
+  const rows = await db
+    .select()
+    .from(subscription)
+    .where(eq(subscription.userId, userId))
+    .orderBy(desc(subscription.createdAt))
+    .limit(1);
+  return rows[0] ?? null;
 }

@@ -118,8 +118,26 @@ export const asset = pgTable('asset', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
+export const subscription = pgTable('subscription', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  lemonSqueezyId: text('lemon_squeezy_id').notNull().unique(),
+  customerId: text('customer_id'),
+  status: text('status').notNull(),
+  plan: text('plan').notNull(),
+  variantId: text('variant_id'),
+  customerPortalUrl: text('customer_portal_url'),
+  renewsAt: timestamp('renews_at'),
+  endsAt: timestamp('ends_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Project = typeof project.$inferSelect;
 export type Job = typeof job.$inferSelect;
 export type Asset = typeof asset.$inferSelect;
+export type Subscription = typeof subscription.$inferSelect;

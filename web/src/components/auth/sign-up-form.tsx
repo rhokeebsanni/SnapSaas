@@ -8,6 +8,7 @@ import { LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordField } from '@/components/auth/password-field';
 import { signUp } from '@/lib/auth-client';
 
 export function SignUpForm() {
@@ -22,6 +23,12 @@ export function SignUpForm() {
     const name = String(form.get('name') ?? '');
     const email = String(form.get('email') ?? '');
     const password = String(form.get('password') ?? '');
+    const confirmPassword = String(form.get('confirmPassword') ?? '');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
 
     setPending(true);
     const { error } = await signUp.email({ name, email, password, callbackURL: '/dashboard' });
@@ -54,14 +61,24 @@ export function SignUpForm() {
       </div>
       <div className="grid gap-2">
         <Label htmlFor="password">Password</Label>
-        <Input
+        <PasswordField
           id="password"
           name="password"
-          type="password"
           autoComplete="new-password"
           required
           minLength={8}
           placeholder="At least 8 characters"
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="confirmPassword">Confirm password</Label>
+        <PasswordField
+          id="confirmPassword"
+          name="confirmPassword"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          placeholder="Re-enter your password"
         />
       </div>
 

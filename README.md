@@ -12,16 +12,27 @@ It kills the tedious _screenshot → design-tool → mockup_ workflow. It is **n
 another Figma — it's a one-click "make my site look gorgeous" machine for
 founders, devs, and indie hackers.
 
-> Status: 🚧 In active development, built phase by phase. See [Roadmap](#roadmap).
-
 ---
+
+## Table of contents
+
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Monorepo layout](#monorepo-layout)
+- [Local development](#local-development)
+- [Environment variables](#environment-variables)
+- [Database migrations](#database-migrations)
+- [Deployment](#deployment)
+- [Services you need to provision](#services-you-need-to-provision)
+- [Scripts](#scripts)
+- [Roadmap](#roadmap)
 
 ## Tech stack
 
 | Area          | Choice                                                          |
 | ------------- | --------------------------------------------------------------- |
 | Frontend      | Next.js 16 (App Router) · TypeScript (strict) · Tailwind CSS v4 |
-| UI            | shadcn/ui · Framer Motion · Zustand (editor state)              |
+| UI            | shadcn/ui (Radix) · Framer Motion · Zustand (editor state)      |
 | App API       | Next.js Route Handlers                                          |
 | Screenshot    | **Separate Node worker** (Express + TS) · Playwright · Sharp    |
 | Database      | PostgreSQL (Neon) · Drizzle ORM                                 |
@@ -29,8 +40,9 @@ founders, devs, and indie hackers.
 | Storage       | Cloudflare R2 (S3-compatible)                                   |
 | Queue         | BullMQ + Upstash Redis                                          |
 | Payments      | Lemon Squeezy (Merchant of Record)                              |
-| Email         | Resend + React Email                                            |
+| Email         | Resend                                                          |
 | Rate limiting | Upstash sliding-window                                          |
+| Analytics     | Vercel Analytics                                                |
 | Deploy        | Vercel (app) · Railway/Fly (worker) · Neon · Upstash · R2       |
 
 ## Architecture
@@ -38,42 +50,46 @@ founders, devs, and indie hackers.
 ```
 User → Next.js (landing + dashboard + editor)
          │
-         ├── /api/capture  → validates URL, checks plan/credits,
-         │                    enqueues a BullMQ job, returns jobId
+         ├── POST /api/capture  → auth + rate-limit + SSRF check, plan/credit
+         │                        gating, creates project+job, enqueues BullMQ
          │
-         ├── Worker (Playwright) ← pulls job from queue
+         ├── Worker (Playwright) ← pulls job from the queue
          │       1. launch chromium, goto(url), wait for network idle
          │       2. screenshot (retina, full-page or viewport)
-         │       3. Sharp composites: frame + bg + shadow + padding
-         │       4. upload result(s) to R2
-         │       5. write asset row to Postgres, mark job done
+         │       3. Sharp composites: frame + bg + shadow + padding (+watermark)
+         │       4. upload PNG/JPG/WebP to R2
+         │       5. write asset rows to Postgres, mark job done, email user
          │
-         ├── /api/jobs/:id → poll status (or SSE stream)
-         └── Lemon Squeezy webhooks → update subscription/credits
+         ├── GET /api/jobs/:id → editor polls until done, shows results
+         └── Lemon Squeezy webhooks → update subscription + plan + credits
 ```
 
-This is a **monorepo** using npm workspaces:
+## Monorepo layout
+
+npm workspaces:
 
 ```
 .
-├── web/      → Next.js app (landing, dashboard, editor, app API)
-└── worker/   → Express + Playwright + Sharp screenshot worker
+├── web/      → Next.js app (landing, auth, dashboard, editor, app API)
+│   └── drizzle/   → generated SQL migrations (source of truth)
+├── worker/   → Express + Playwright + Sharp screenshot worker (Dockerized)
+├── vercel.json    → builds the web workspace
+└── .env.example   → every environment variable, documented
 ```
 
-## Getting started
+## Local development
 
 ### Prerequisites
 
-- Node.js **20.9+**
-- npm 10+
-- (For real captures) accounts for the services in `.env.example`
+- Node.js **20.9+** and npm 10+
+- A Postgres database (Neon, or local) and ideally an Upstash Redis for the queue
 
-### 1. Clone & install
+### 1. Install
 
 ```bash
-git clone <repo-url> snapsaas
-cd snapsaas
 npm install
+# Install the headless browser the worker needs (once):
+npx playwright install chromium
 ```
 
 ### 2. Configure environment
@@ -82,43 +98,113 @@ npm install
 cp .env.example .env
 ```
 
-Fill in the values you have. The app degrades gracefully where a service is not
-yet configured, so you can start the UI before wiring up every integration.
+Fill in what you have. The app **degrades gracefully**: pages build and render
+without external services, and each integration activates once its keys are set.
+The local dev scripts load this single root `.env` (the worker reads it
+directly; the web app reads it via `dotenv-cli`).
 
-### 3. Run locally
+### 3. Run
 
 ```bash
-# runs the Next.js app (web) and the worker together
-npm run dev
+npm run dev          # web (http://localhost:3000) + worker (http://localhost:4000) together
 ```
 
-- Web: http://localhost:3000
-- Worker health: http://localhost:4000/health
+## Environment variables
 
-### Useful scripts
+All variables are documented in [`.env.example`](./.env.example). Summary:
 
-| Command             | Description                           |
-| ------------------- | ------------------------------------- |
-| `npm run dev`       | Run web + worker concurrently         |
-| `npm run build`     | Production build of both workspaces   |
-| `npm run typecheck` | TypeScript checks across the monorepo |
-| `npm run lint`      | ESLint across the monorepo            |
-| `npm run format`    | Prettier write                        |
+- **Core** — `NEXT_PUBLIC_APP_URL`, `WORKER_URL`, `INTERNAL_API_SECRET`
+- **Database** — `DATABASE_URL` (Neon Postgres)
+- **Auth** — `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_*`, `GITHUB_*`
+- **Queue / rate limit** — `REDIS_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+- **Storage** — `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`
+- **Payments** — `LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_WEBHOOK_SECRET`, `LEMONSQUEEZY_*_VARIANT_ID`
+- **Email** — `RESEND_API_KEY`, `EMAIL_FROM`
+
+> Anything prefixed `NEXT_PUBLIC_` is exposed to the browser. Never put secrets there.
+
+## Database migrations
+
+Migrations are generated from the Drizzle schema and committed under
+`web/drizzle/`. With `DATABASE_URL` set:
+
+```bash
+npm run db:migrate     # apply committed migrations
+# or, for rapid local iteration:
+npm run db:push        # push schema directly (no migration files)
+npm run db:studio      # open Drizzle Studio
+```
+
+## Deployment
+
+### Web app → Vercel
+
+1. Import the repo into Vercel. Keep the **Root Directory at the repo root** —
+   the included `vercel.json` installs the workspace and builds `web`.
+2. Add every non-worker env var from `.env.example` in the Vercel dashboard.
+3. Set `NEXT_PUBLIC_APP_URL` and `BETTER_AUTH_URL` to your production URL.
+
+### Worker → Railway or Fly.io (Docker)
+
+The worker ships a [`Dockerfile`](./worker/Dockerfile) built on the official
+Playwright image (browsers + fonts preinstalled). Build from the **repo root**:
+
+```bash
+docker build -f worker/Dockerfile -t snapsaas-worker .
+```
+
+On Railway/Fly, point the build at `worker/Dockerfile` with the build context at
+the repo root, and set the worker env vars (`DATABASE_URL`, `REDIS_URL`,
+`R2_*`, `INTERNAL_API_SECRET`, optionally `RESEND_API_KEY`, `EMAIL_FROM`,
+`NEXT_PUBLIC_APP_URL`).
+
+### Webhooks
+
+In Lemon Squeezy, add a webhook pointing to
+`https://<your-app>/api/webhooks/lemonsqueezy` with the same
+`LEMONSQUEEZY_WEBHOOK_SECRET`, subscribed to subscription events.
+
+## Services you need to provision
+
+To run end-to-end in production, create accounts and add the keys:
+
+| Service                                   | Why                       | Keys                                |
+| ----------------------------------------- | ------------------------- | ----------------------------------- |
+| [Neon](https://neon.tech)                 | Postgres database         | `DATABASE_URL`                      |
+| [Upstash](https://upstash.com)            | Redis queue + rate limit  | `REDIS_URL`, `UPSTASH_REDIS_REST_*` |
+| [Cloudflare R2](https://cloudflare.com)   | Asset storage             | `R2_*`                              |
+| [Lemon Squeezy](https://lemonsqueezy.com) | Payments                  | `LEMONSQUEEZY_*`                    |
+| [Resend](https://resend.com)              | Transactional email       | `RESEND_API_KEY`                    |
+| Google / GitHub OAuth                     | Social sign-in (optional) | `GOOGLE_*`, `GITHUB_*`              |
+
+## Scripts
+
+| Command              | Description                           |
+| -------------------- | ------------------------------------- |
+| `npm run dev`        | Run web + worker concurrently         |
+| `npm run build`      | Production build of both workspaces   |
+| `npm run typecheck`  | TypeScript checks across the monorepo |
+| `npm run lint`       | ESLint across the monorepo            |
+| `npm run format`     | Prettier write                        |
+| `npm run db:migrate` | Apply database migrations             |
 
 ## Roadmap
 
-Built in phases, each ending in a real commit:
-
 - [x] **Phase 0** — Repo, monorepo tooling, CI
-- [ ] **Phase 1** — Design system & landing page
-- [ ] **Phase 2** — Auth (Better Auth + Drizzle/Neon)
-- [ ] **Phase 3** — Screenshot engine (Playwright + Sharp)
-- [ ] **Phase 4** — Queue, storage, job lifecycle
-- [ ] **Phase 5** — Editor / dashboard
-- [ ] **Phase 6** — Monetization (Lemon Squeezy)
-- [ ] **Phase 7** — Polish, SEO, analytics
-- [ ] **Phase 8** — Deploy
+- [x] **Phase 1** — Design system & landing page
+- [x] **Phase 2** — Auth (Better Auth + Drizzle/Neon)
+- [x] **Phase 3** — Screenshot engine (Playwright + Sharp)
+- [x] **Phase 4** — Queue, storage, job lifecycle
+- [x] **Phase 5** — Editor / dashboard
+- [x] **Phase 6** — Monetization (Lemon Squeezy)
+- [x] **Phase 7** — Polish, SEO, analytics, emails, rate limiting
+- [x] **Phase 8** — Deploy
+
+### Stretch goals
+
+Batch mode · auto device-frame detection · animated (scrolling) exports ·
+Figma plugin & Chrome extension · AI background generation · public REST API.
 
 ## License
 
-This project is a portfolio build. All rights reserved unless stated otherwise.
+Portfolio build. All rights reserved unless stated otherwise.

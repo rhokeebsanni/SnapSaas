@@ -13,6 +13,7 @@ const NAV = [
   { href: '/#features', label: 'Features' },
   { href: '/#gallery', label: 'Gallery' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/contact', label: 'Help' },
 ];
 
 export function SiteHeader() {
@@ -27,24 +28,29 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-50 w-full transition-colors',
-        scrolled
-          ? 'bg-background/80 supports-[backdrop-filter]:bg-background/60 border-b backdrop-blur'
-          : 'border-b border-transparent',
-      )}
-    >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" aria-label="SnapSaas home">
+    <header className="sticky top-0 z-50 w-full px-3 pt-3 sm:px-4 sm:pt-4">
+      <div
+        className={cn(
+          'mx-auto flex h-14 max-w-5xl items-center justify-between rounded-2xl px-3 transition-all duration-300 sm:px-4',
+          scrolled
+            ? 'bg-background/70 supports-[backdrop-filter]:bg-background/55 border shadow-lg backdrop-blur-xl'
+            : 'border border-transparent',
+        )}
+      >
+        <Link href="/" aria-label="SnapSaas home" className="shrink-0">
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        {/* Pill nav */}
+        <nav className="bg-muted/40 absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-full border p-1 md:flex">
           {NAV.map((item) => (
-            <Button key={item.href} variant="ghost" size="sm" asChild>
-              <Link href={item.href}>{item.label}</Link>
-            </Button>
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-muted-foreground hover:text-foreground hover:bg-background rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors"
+            >
+              {item.label}
+            </Link>
           ))}
         </nav>
 
@@ -72,7 +78,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="bg-background border-t px-4 py-3 md:hidden">
+        <div className="bg-background/90 mx-auto mt-2 max-w-5xl rounded-2xl border p-3 shadow-lg backdrop-blur-xl md:hidden">
           <nav className="flex flex-col gap-1">
             {NAV.map((item) => (
               <Link

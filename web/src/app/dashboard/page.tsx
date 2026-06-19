@@ -6,8 +6,10 @@ import { ArrowRight, ImageIcon, Sparkles, Wand2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { CaptureCard } from '@/components/dashboard/capture-card';
+import { StatCard } from '@/components/dashboard/stat-card';
+import { CapturesEmptyState } from '@/components/dashboard/empty-state';
 import { UpgradeToast } from '@/components/dashboard/upgrade-toast';
 import { getServerSession } from '@/lib/session';
 import { getAccount } from '@/lib/account';
@@ -45,7 +47,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Primary CTA */}
-      <Card className="border-brand/40 from-brand/10 to-brand-2/10 overflow-hidden bg-gradient-to-br">
+      <Card className="shimmer border-brand/40 from-brand/10 to-brand-2/10 overflow-hidden bg-gradient-to-br">
         <CardContent className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-4">
             <span className="bg-brand/15 text-brand inline-flex size-12 items-center justify-center rounded-xl">
@@ -68,46 +70,30 @@ export default async function DashboardPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Captures remaining
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{account.credits}</p>
-            <p className="text-muted-foreground text-xs">of {limitLabel} this month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">
-              Export quality
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{account.plan.limits.maxScale}×</p>
-            <p className="text-muted-foreground text-xs">
-              {account.plan.limits.watermark ? 'Watermarked' : 'No watermark'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-muted-foreground text-sm font-medium">Projects</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="flex items-center gap-2 text-3xl font-bold">
-              <ImageIcon className="text-muted-foreground size-6" /> {recent.length}
-            </p>
-            <p className="text-muted-foreground text-xs">
-              {recent.length === 0 ? 'No captures yet' : 'Recent captures'}
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={<Wand2 className="size-5" />}
+          label="Captures remaining"
+          value={account.plan.limits.capturesPerMonth < 0 ? '∞' : account.credits}
+          hint={`of ${limitLabel} this month`}
+          accent="brand"
+        />
+        <StatCard
+          icon={<Sparkles className="size-5" />}
+          label="Export quality"
+          value={`${account.plan.limits.maxScale}×`}
+          hint={account.plan.limits.watermark ? 'Watermarked' : 'No watermark'}
+          accent="teal"
+        />
+        <StatCard
+          icon={<ImageIcon className="size-5" />}
+          label="Projects"
+          value={recent.length}
+          hint={recent.length === 0 ? 'No captures yet' : 'Recent captures'}
+          accent="amber"
+        />
       </div>
 
-      {recent.length > 0 && (
+      {recent.length > 0 ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Recent captures</h2>
@@ -121,6 +107,8 @@ export default async function DashboardPage() {
             ))}
           </div>
         </div>
+      ) : (
+        <CapturesEmptyState />
       )}
 
       {account.plan.id === 'free' && (

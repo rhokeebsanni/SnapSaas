@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { Hero } from '@/components/landing/hero';
-import { TrustStrip } from '@/components/landing/trust-strip';
 import { Features } from '@/components/landing/features';
 import { FrameGallery } from '@/components/landing/frame-gallery';
 import { BeforeAfter } from '@/components/landing/before-after';
@@ -37,7 +36,6 @@ export default async function HomePage() {
       <SiteHeader />
       <main className="flex-1">
         <Hero />
-        <TrustStrip />
         <Features />
         <FrameGallery />
         <BeforeAfter />

@@ -136,23 +136,17 @@ export function PricingTable({
             <div
               key={plan.id}
               className={cn(
-                'bg-card relative flex h-full flex-col rounded-2xl border p-6 transition-all duration-300',
-                'dark:bg-card/70 dark:backdrop-blur-sm',
-                plan.highlighted
-                  ? 'border-brand/50 ring-brand/30 elevate scale-[1.02] ring-1'
-                  : 'elevate-hover',
+                'bg-card relative flex h-full flex-col rounded-2xl border p-6',
+                plan.highlighted && 'border-brand/50 ring-brand/30 shadow-lg ring-1',
               )}
             >
               {plan.highlighted && (
-                <>
-                  <div className="from-brand/10 pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-gradient-to-b to-transparent" />
-                  <Badge
-                    variant="brand"
-                    className="bg-brand text-brand-foreground absolute -top-3 left-1/2 -translate-x-1/2"
-                  >
-                    Most popular
-                  </Badge>
-                </>
+                <Badge
+                  variant="brand"
+                  className="bg-brand text-brand-foreground absolute -top-3 left-1/2 -translate-x-1/2"
+                >
+                  Most popular
+                </Badge>
               )}
               <h3 className="text-lg font-semibold">{plan.name}</h3>
               <p className="text-muted-foreground mt-1 text-sm">{plan.tagline}</p>
@@ -166,7 +160,7 @@ export function PricingTable({
               )}
 
               <Button
-                variant={plan.highlighted ? 'premium' : 'outline'}
+                variant={plan.highlighted ? 'brand' : 'outline'}
                 className="mt-6"
                 disabled={isCurrent || pending === plan.id}
                 onClick={() => choose(plan)}

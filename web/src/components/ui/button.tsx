@@ -12,8 +12,6 @@ const buttonVariants = cva(
         default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
         brand:
           'bg-brand text-brand-foreground shadow-sm hover:opacity-90 focus-visible:ring-brand/40',
-        premium:
-          'from-brand to-brand-2 text-brand-foreground bg-gradient-to-r bg-[length:160%_auto] bg-left shadow-md transition-[background-position,box-shadow] duration-500 hover:bg-right hover:shadow-lg focus-visible:ring-brand/40',
         destructive: 'bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90',
         outline: 'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground',
         secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',

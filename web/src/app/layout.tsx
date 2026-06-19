@@ -6,7 +6,6 @@ import './globals.css';
 
 import { ThemeProvider } from '@/components/theme-provider';
 import { Starfield } from '@/components/starfield';
-import { ScrollProgress } from '@/components/scroll-progress';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -64,7 +63,6 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <Starfield />
-          <ScrollProgress />
           {children}
           <Toaster richColors closeButton position="top-center" />
         </ThemeProvider>

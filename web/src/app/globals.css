@@ -26,38 +26,41 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
 
-  /* Brand accents — a striking crimson that pops, with a warm ember secondary. */
-  --brand: oklch(0.55 0.22 25);
+  /* Brand accent — monochrome. In light mode a pure-white accent would vanish
+     on white, so the accent is graphite (near-black) with a mid-grey secondary;
+     buttons keep white text. (Dark mode flips this to white-on-black below.) */
+  --brand: oklch(0.22 0 0);
   --brand-foreground: oklch(0.985 0 0);
-  --brand-2: oklch(0.7 0.19 45);
+  --brand-2: oklch(0.5 0 0);
 }
 
 .dark {
-  /* Glossy pitch-black "deep space" palette: near-black backdrop with a faint
-     warm tint so the crimson brand sings, glassy raised surfaces, ember glow. */
-  --background: oklch(0.08 0.012 25);
-  --foreground: oklch(0.97 0.004 30);
-  --card: oklch(0.13 0.014 25);
-  --card-foreground: oklch(0.97 0.004 30);
-  --popover: oklch(0.12 0.014 25);
-  --popover-foreground: oklch(0.97 0.004 30);
-  --primary: oklch(0.97 0.004 30);
-  --primary-foreground: oklch(0.13 0.014 25);
-  --secondary: oklch(0.21 0.018 25);
-  --secondary-foreground: oklch(0.97 0.004 30);
-  --muted: oklch(0.19 0.014 25);
-  --muted-foreground: oklch(0.72 0.02 30);
-  --accent: oklch(0.24 0.03 25);
-  --accent-foreground: oklch(0.97 0.004 30);
+  /* True deep-space palette: pitch black, pure greyscale (zero hue) so the
+     starfield reads clean. White/grey are the only accents. */
+  --background: oklch(0.04 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.11 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.1 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.97 0 0);
+  --primary-foreground: oklch(0.11 0 0);
+  --secondary: oklch(0.2 0 0);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.17 0 0);
+  --muted-foreground: oklch(0.7 0 0);
+  --accent: oklch(0.23 0 0);
+  --accent-foreground: oklch(0.97 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.85 0.06 30 / 12%);
-  --input: oklch(0.85 0.06 30 / 17%);
-  --ring: oklch(0.62 0.22 25);
+  --border: oklch(0.95 0 0 / 12%);
+  --input: oklch(0.95 0 0 / 16%);
+  --ring: oklch(0.85 0 0);
 
-  --brand: oklch(0.62 0.23 25);
-  --brand-foreground: oklch(0.99 0.01 30);
-  --brand-2: oklch(0.72 0.19 45);
+  /* White accent, light-grey secondary; text on the white surface is near-black. */
+  --brand: oklch(0.98 0 0);
+  --brand-foreground: oklch(0.12 0 0);
+  --brand-2: oklch(0.72 0 0);
 }
 
 @theme inline {
@@ -104,16 +107,6 @@
     color: var(--foreground);
     font-family: var(--font-sans), Arial, Helvetica, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    /* Enable contextual alternates + kerning for a more refined wordmark feel. */
-    font-feature-settings: 'cv11', 'ss01';
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Large display headings read more premium with tighter tracking + balance. */
-  h1,
-  h2 {
-    letter-spacing: -0.02em;
   }
 
   /* Glossy pitch-black sheen: a deep specular highlight up top plus soft brand
@@ -125,10 +118,9 @@
     z-index: -2;
     pointer-events: none;
     background:
-      radial-gradient(120% 80% at 50% -10%, oklch(0.99 0.02 30 / 0.08), transparent 55%),
-      radial-gradient(60% 50% at 12% 8%, oklch(0.62 0.23 25 / 0.16), transparent 60%),
-      radial-gradient(55% 45% at 92% 4%, oklch(0.72 0.19 45 / 0.12), transparent 60%),
-      radial-gradient(80% 60% at 50% 120%, oklch(0.62 0.23 25 / 0.1), transparent 55%);
+      radial-gradient(120% 80% at 50% -10%, oklch(1 0 0 / 0.06), transparent 55%),
+      radial-gradient(50% 40% at 15% 6%, oklch(1 0 0 / 0.04), transparent 60%),
+      radial-gradient(45% 35% at 88% 6%, oklch(1 0 0 / 0.03), transparent 60%);
   }
 
   /* The starfield canvas mount sits just above the sheen, below content. */
@@ -222,91 +214,6 @@
     60%,
     100% {
       transform: translateX(100%);
-    }
-  }
-
-  /* Premium elevation: layered, brand-tinted shadows that read richer than a
-     flat box-shadow. `.elevate` is the resting state; `.elevate-hover` lifts. */
-  .elevate {
-    box-shadow:
-      0 1px 2px -1px oklch(0 0 0 / 0.12),
-      0 4px 12px -4px oklch(0 0 0 / 0.12),
-      0 12px 32px -12px color-mix(in oklch, var(--brand) 22%, transparent);
-  }
-  .dark .elevate {
-    box-shadow:
-      0 1px 0 0 oklch(1 0 0 / 0.05) inset,
-      0 2px 8px -2px oklch(0 0 0 / 0.5),
-      0 16px 48px -16px color-mix(in oklch, var(--brand) 30%, transparent);
-  }
-  .elevate-hover {
-    transition:
-      transform 0.3s cubic-bezier(0.21, 0.47, 0.32, 0.98),
-      box-shadow 0.3s ease;
-  }
-  .elevate-hover:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      0 2px 4px -1px oklch(0 0 0 / 0.14),
-      0 8px 20px -6px oklch(0 0 0 / 0.16),
-      0 24px 60px -18px color-mix(in oklch, var(--brand) 40%, transparent);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .elevate-hover:hover {
-      transform: none;
-    }
-  }
-
-  /* Subtle film grain to kill banding on gradients and add a tactile, premium
-     texture. Apply to a fixed/absolute overlay element. */
-  .grain {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
-    background-repeat: repeat;
-    mix-blend-mode: overlay;
-  }
-  .dark .grain {
-    opacity: 0.5;
-  }
-
-  /* Spotlight-follow hover: a soft brand glow tracks the cursor. Pair with
-     a child .spotlight-glow and JS that sets --mx/--my (see SpotlightCard). */
-  .spotlight {
-    position: relative;
-  }
-  .spotlight-glow {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    background: radial-gradient(
-      240px circle at var(--mx, 50%) var(--my, 0%),
-      color-mix(in oklch, var(--brand) 16%, transparent),
-      transparent 70%
-    );
-  }
-  .spotlight:hover .spotlight-glow {
-    opacity: 1;
-  }
-
-  /* Animated brand gradient text — a slow drift that reads alive but tasteful. */
-  .text-gradient-animate {
-    background-image: linear-gradient(100deg, var(--brand), var(--brand-2), var(--brand));
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: gradient-drift 6s linear infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .text-gradient-animate {
-      animation: none;
-    }
-  }
-  @keyframes gradient-drift {
-    to {
-      background-position: 200% center;
     }
   }
 }

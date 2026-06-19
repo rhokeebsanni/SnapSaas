@@ -27,8 +27,17 @@ export async function getServerSession() {
   }
 }
 
-/** True OAuth availability is server-only (depends on secret env vars). */
+/**
+ * True OAuth availability is server-only (depends on secret env vars). Computed
+ * per access (a getter, not a frozen module-load constant) so it always
+ * reflects the current environment rather than whatever was set when this
+ * module was first imported.
+ */
 export const oauthEnabled = {
-  google: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-  github: Boolean(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET),
+  get google() {
+    return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+  },
+  get github() {
+    return Boolean(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET);
+  },
 };

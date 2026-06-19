@@ -104,6 +104,16 @@
     color: var(--foreground);
     font-family: var(--font-sans), Arial, Helvetica, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Enable contextual alternates + kerning for a more refined wordmark feel. */
+    font-feature-settings: 'cv11', 'ss01';
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Large display headings read more premium with tighter tracking + balance. */
+  h1,
+  h2 {
+    letter-spacing: -0.02em;
   }
 
   /* Glossy pitch-black sheen: a deep specular highlight up top plus soft brand

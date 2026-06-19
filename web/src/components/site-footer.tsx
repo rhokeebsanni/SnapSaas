@@ -13,11 +13,11 @@ const LINKS: { title: string; items: { href: string; label: string }[] }[] = [
     ],
   },
   {
-    title: 'Company',
+    title: 'Support',
     items: [
-      { href: '/#', label: 'About' },
-      { href: '/#', label: 'Blog' },
-      { href: '/#', label: 'Changelog' },
+      { href: '/contact', label: 'Contact' },
+      { href: '/contact', label: 'Help & FAQ' },
+      { href: '/pricing#faq', label: 'Billing' },
     ],
   },
   {

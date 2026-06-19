@@ -12,6 +12,7 @@ export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull(),
+  credits: integer('credits').notNull().default(10),
 });
 
 export const job = pgTable('job', {
@@ -21,6 +22,10 @@ export const job = pgTable('job', {
   status: text('status').notNull().default('queued'),
   settings: jsonb('settings').$type<CaptureSettings>().notNull(),
   error: text('error'),
+  // Whether this job deducted a finite credit at enqueue time (unlimited plans = false).
+  creditSpent: boolean('credit_spent').notNull().default(false),
+  // When a finite-credit job fails, we refund the spent credit exactly once.
+  creditRefunded: boolean('credit_refunded').notNull().default(false),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

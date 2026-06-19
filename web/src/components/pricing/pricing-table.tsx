@@ -2,11 +2,13 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Check, LoaderCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PLAN_LIST, yearlyDiscountPercent, type Plan, type PlanId } from '@/lib/plans';
+import { formatPrice, REGIONS, REGION_LIST, type Region } from '@/lib/pricing';
 import { cn } from '@/lib/utils';
 
 export function PricingTable({
@@ -18,17 +20,21 @@ export function PricingTable({
 }) {
   const router = useRouter();
   const [yearly, setYearly] = React.useState(false);
+  const [region, setRegion] = React.useState<Region>('US');
   const [pending, setPending] = React.useState<PlanId | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+
+  // Default the currency to the visitor's region (display only).
+  React.useEffect(() => {
+    import('@/lib/pricing').then(({ detectRegion }) => setRegion(detectRegion()));
+  }, []);
 
   async function choose(plan: Plan) {
-    setError(null);
     if (plan.id === 'free') {
       router.push(signedIn ? '/dashboard' : '/sign-up');
       return;
     }
     if (!signedIn) {
-      router.push('/sign-up');
+      router.push(`/sign-up?next=/pricing`);
       return;
     }
 
@@ -40,20 +46,34 @@ export function PricingTable({
         body: JSON.stringify({ plan: plan.id, cycle: yearly ? 'yearly' : 'monthly' }),
       });
       const data = await res.json().catch(() => ({}));
+
       if (res.ok && data.url) {
+        // Hand off to Lemon Squeezy's hosted checkout. The session cookie stays
+        // put — we come back to /dashboard?upgraded=1, still signed in.
         window.location.assign(data.url);
         return;
       }
-      setError(data.error ?? 'Could not start checkout.');
+
+      // Specific, honest messaging instead of a dead end that looks like a logout.
+      if (res.status === 401) {
+        toast.error('Your session expired. Please sign in again.');
+        router.push('/sign-in?next=/pricing');
+      } else if (res.status === 503) {
+        toast.info('Payments are being set up', {
+          description: 'Card checkout isn’t live yet — check back shortly.',
+        });
+      } else {
+        toast.error(data.error ?? 'Could not start checkout.');
+      }
     } catch {
-      setError('Network error — please try again.');
+      toast.error('Network error — please try again.');
     }
     setPending(null);
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-center">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <div className="bg-background inline-flex items-center gap-1 rounded-full border p-1 text-sm">
           <button
             type="button"
@@ -76,17 +96,37 @@ export function PricingTable({
             Yearly <span className="text-brand">save 20%</span>
           </button>
         </div>
+
+        {/* Region / currency switcher (display only — billed in USD). */}
+        <div className="bg-background inline-flex items-center gap-1 rounded-full border p-1 text-sm">
+          {REGION_LIST.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => setRegion(r.id)}
+              className={cn(
+                'rounded-full px-3 py-1.5 transition-colors',
+                region === r.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+              )}
+              aria-pressed={region === r.id}
+            >
+              <span aria-hidden>{r.flag}</span> {r.currency}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {error && (
-        <p role="alert" className="text-destructive text-center text-sm">
-          {error}
+      {!REGIONS[region].charged && (
+        <p className="text-muted-foreground text-center text-xs">
+          Prices shown in {REGIONS[region].currency} are an estimate — you’re billed in USD by Lemon
+          Squeezy, which converts at checkout.
         </p>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {PLAN_LIST.map((plan) => {
-          const price = yearly ? plan.priceYearly : plan.priceMonthly;
+          const usd = yearly ? plan.priceYearly : plan.priceMonthly;
+          const price = plan.priceMonthly === 0 ? '$0' : formatPrice(usd, region);
           const suffix = plan.priceMonthly === 0 ? '' : yearly ? '/yr' : '/mo';
           const discount = yearlyDiscountPercent(plan);
           const isCurrent = currentPlan === plan.id;
@@ -108,7 +148,7 @@ export function PricingTable({
               <p className="text-muted-foreground mt-1 text-sm">{plan.tagline}</p>
 
               <div className="mt-5 flex items-end gap-1">
-                <span className="text-4xl font-bold tracking-tight">${price}</span>
+                <span className="text-4xl font-bold tracking-tight">{price}</span>
                 <span className="text-muted-foreground mb-1 text-sm">{suffix}</span>
               </div>
               {yearly && discount > 0 && (

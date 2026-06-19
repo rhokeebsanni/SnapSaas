@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { track } from '@vercel/analytics';
 import { Download, ImageOff, LoaderCircle, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 
@@ -44,11 +45,18 @@ export function Editor({
   initialUrl?: string;
 }) {
   const s = useEditorStore();
+  const router = useRouter();
 
   React.useEffect(() => {
     if (initialUrl) s.setUrl(initialUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUrl]);
+
+  // When a run settles, re-sync server state (the credits badge reflects the
+  // spend on success, and the refund when a capture fails).
+  React.useEffect(() => {
+    if (s.status === 'done' || s.status === 'failed') router.refresh();
+  }, [s.status, router]);
 
   const runGenerate = React.useCallback(() => {
     const st = useEditorStore.getState();

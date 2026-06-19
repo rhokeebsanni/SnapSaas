@@ -17,7 +17,7 @@ function variantEnv(): Record<string, string | undefined> {
     'pro:monthly': process.env.LEMONSQUEEZY_PRO_MONTHLY_VARIANT_ID,
     'pro:yearly': process.env.LEMONSQUEEZY_PRO_YEARLY_VARIANT_ID,
     'team:monthly': process.env.LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID,
-    'team:yearly': process.env.LEMONSQUEEZY_TEAM_MONTHLY_VARIANT_ID,
+    'team:yearly': process.env.LEMONSQUEEZY_TEAM_YEARLY_VARIANT_ID,
   };
 }
 

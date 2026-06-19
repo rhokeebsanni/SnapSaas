@@ -121,7 +121,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         if (data.status === 'failed') {
           const message = data.error ?? 'The capture failed.';
           set({ status: 'failed', error: message });
-          toast.error(message);
+          // Failed captures don't cost you a credit — it's refunded automatically.
+          toast.error(message, { description: "Your credit wasn't charged." });
           return;
         }
       } catch {

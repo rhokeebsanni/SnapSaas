@@ -1,6 +1,7 @@
 import { Clock, Download, Layers, Palette, ShieldCheck, Zap } from 'lucide-react';
 
 import { FadeIn } from '@/components/motion/fade-in';
+import { SpotlightCard } from '@/components/ui/spotlight-card';
 
 const FEATURES = [
   {
@@ -50,14 +51,14 @@ export function Features() {
 
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f, i) => (
-          <FadeIn key={f.title} delay={i * 0.05}>
-            <div className="bg-card group h-full rounded-2xl border p-6 transition-shadow hover:shadow-md">
-              <div className="bg-brand/10 text-brand mb-4 inline-flex size-11 items-center justify-center rounded-xl">
+          <FadeIn key={f.title} delay={i * 0.05} className="h-full">
+            <SpotlightCard className="p-6">
+              <div className="from-brand/20 to-brand-2/10 text-brand ring-brand/10 mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ring-1">
                 <f.icon className="size-5" />
               </div>
-              <h3 className="text-lg font-semibold">{f.title}</h3>
-              <p className="text-muted-foreground mt-2 text-sm">{f.body}</p>
-            </div>
+              <h3 className="text-lg font-semibold tracking-tight">{f.title}</h3>
+              <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{f.body}</p>
+            </SpotlightCard>
           </FadeIn>
         ))}
       </div>

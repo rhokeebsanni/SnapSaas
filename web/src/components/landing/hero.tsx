@@ -64,6 +64,7 @@ export function Hero() {
       <div className="bg-grid pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <div className="bg-brand/25 pointer-events-none absolute left-1/2 top-[-10%] -z-10 h-[420px] w-[720px] -translate-x-1/2 rounded-full blur-3xl" />
       <div className="bg-brand-2/15 pointer-events-none absolute right-[-5%] top-[20%] -z-10 h-[300px] w-[300px] rounded-full blur-3xl" />
+      <div className="grain pointer-events-none absolute inset-0 -z-10 opacity-[0.15]" />
 
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 sm:pt-24">
         <div className="mx-auto max-w-3xl text-center">
@@ -84,7 +85,8 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.05 }}
           >
-            Turn any URL into <span className="text-gradient">gorgeous</span> marketing screenshots
+            Turn any URL into <span className="text-gradient-animate">gorgeous</span> marketing
+            screenshots
           </motion.h1>
 
           <motion.p
@@ -115,7 +117,13 @@ export function Hero() {
                 inputMode="url"
               />
             </div>
-            <Button type="submit" variant="brand" size="lg" disabled={generating} className="gap-2">
+            <Button
+              type="submit"
+              variant="premium"
+              size="lg"
+              disabled={generating}
+              className="gap-2"
+            >
               {generating ? (
                 <LoaderCircle className="size-4 animate-spin" />
               ) : (

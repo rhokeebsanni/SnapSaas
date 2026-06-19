@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { Hero } from '@/components/landing/hero';
@@ -6,6 +8,7 @@ import { FrameGallery } from '@/components/landing/frame-gallery';
 import { BeforeAfter } from '@/components/landing/before-after';
 import { PricingTeaser } from '@/components/landing/pricing-teaser';
 import { CTA } from '@/components/landing/cta';
+import { getServerSession } from '@/lib/session';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -18,7 +21,12 @@ const jsonLd = {
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Signed-in visitors go straight to the app; logged-out visitors (and
+  // crawlers, which carry no session cookie) still get the marketing page.
+  const session = await getServerSession();
+  if (session) redirect('/dashboard');
+
   return (
     <>
       <script

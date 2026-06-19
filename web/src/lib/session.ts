@@ -16,7 +16,13 @@ export async function getServerSession() {
   try {
     return await auth.api.getSession({ headers: await headers() });
   } catch (err) {
-    console.error('[auth] getSession failed:', err);
+    // During static prerender there's no request, so `headers()` throws a
+    // DYNAMIC_SERVER_USAGE error — that's expected and just forces the page to
+    // render dynamically. Only log genuinely unexpected failures.
+    const digest = (err as { digest?: string })?.digest;
+    if (digest !== 'DYNAMIC_SERVER_USAGE') {
+      console.error('[auth] getSession failed:', err);
+    }
     return null;
   }
 }

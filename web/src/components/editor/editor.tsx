@@ -50,6 +50,20 @@ const WINDOW_OPTIONS: { value: WindowStyle; label: string }[] = [
   { value: 'dark', label: 'Dark' },
 ];
 
+// Plain-language names + explanations for the export scale, so "1×/2×/3×"
+// jargon doesn't trip people up.
+const SCALE_LABEL: Record<OutputScale, string> = {
+  1: 'Standard',
+  2: 'Sharp',
+  3: 'Ultra',
+};
+
+const SCALE_HINT: Record<OutputScale, string> = {
+  1: 'Standard (1×) — crisp on screen; good for social posts and previews.',
+  2: 'Sharp (2×) — retina-quality, twice the pixels. Best for most uses.',
+  3: 'Ultra (3×) — maximum detail for print and large displays. Bigger files.',
+};
+
 export function Editor({
   maxScale,
   allTemplates,
@@ -187,13 +201,13 @@ export function Editor({
           />
         </Control>
 
-        <Control label="Resolution">
+        <Control label="Image quality" hint={SCALE_HINT[s.scale]}>
           <Segmented
             value={s.scale}
             onChange={(v) => s.setScale(v)}
             options={([1, 2, 3] as OutputScale[]).map((n) => ({
               value: n,
-              label: `${n}×`,
+              label: SCALE_LABEL[n],
               locked: n > maxScale,
             }))}
           />
@@ -353,11 +367,20 @@ export function Editor({
   );
 }
 
-function Control({ label, children }: { label: string; children: React.ReactNode }) {
+function Control({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
       <div>{children}</div>
+      {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
     </div>
   );
 }

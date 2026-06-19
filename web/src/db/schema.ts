@@ -21,6 +21,9 @@ export const user = pgTable('user', {
   // Product fields (managed by SnapSaas, not Better Auth).
   plan: text('plan').notNull().default('free'),
   credits: integer('credits').notNull().default(10),
+  // New users get a 30-day Pro trial; while `now < trialEndsAt` they are treated
+  // as Pro regardless of `plan`. Null once the trial has been consumed/expired.
+  trialEndsAt: timestamp('trial_ends_at'),
 
   createdAt: timestamp('created_at')
     .$defaultFn(() => new Date())

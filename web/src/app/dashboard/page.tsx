@@ -42,9 +42,36 @@ export default async function DashboardPage() {
         </div>
         <Badge variant={account.plan.id === 'free' ? 'secondary' : 'brand'} className="gap-1">
           <Sparkles className="size-3" />
-          {account.plan.name} plan
+          {account.onTrial
+            ? `Pro trial · ${account.trialDaysLeft}d left`
+            : `${account.plan.name} plan`}
         </Badge>
       </div>
+
+      {/* Trial banner */}
+      {account.onTrial && (
+        <Card className="border-brand/40 from-brand/10 to-brand-2/5 overflow-hidden bg-gradient-to-br">
+          <CardContent className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3">
+              <span className="bg-brand/15 text-brand grid size-10 place-items-center rounded-xl">
+                <Sparkles className="size-5" />
+              </span>
+              <div>
+                <p className="font-medium">
+                  You’re on the Pro trial — {account.trialDaysLeft} day
+                  {account.trialDaysLeft === 1 ? '' : 's'} left
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  No watermark, 3× exports, and the full catalog. Upgrade anytime to keep them.
+                </p>
+              </div>
+            </div>
+            <Button variant="brand" asChild>
+              <Link href="/pricing">Upgrade to keep Pro</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Primary CTA */}
       <Card className="shimmer border-brand/40 from-brand/10 to-brand-2/10 overflow-hidden bg-gradient-to-br">

@@ -112,6 +112,9 @@ export const PLANS: Record<PlanId, Plan> = {
 
 export const PLAN_LIST: Plan[] = [PLANS.free, PLANS.pro, PLANS.team];
 
+/** Length of the automatic Pro trial granted to every new signup. */
+export const TRIAL_DAYS = 30;
+
 /** Annual discount vs. paying monthly, as a whole-number percentage. */
 export function yearlyDiscountPercent(plan: Plan): number {
   if (plan.priceMonthly === 0) return 0;

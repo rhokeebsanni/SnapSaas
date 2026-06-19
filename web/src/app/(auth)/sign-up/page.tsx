@@ -17,7 +17,10 @@ export default function SignUpPage() {
     <Card>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Create your account</CardTitle>
-        <CardDescription>Free forever — 10 captures every month, no card required.</CardDescription>
+        <CardDescription>
+          Start with <span className="text-foreground font-medium">30 days of Pro, free</span> — no
+          card required.
+        </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <OAuthButtons google={oauthEnabled.google} github={oauthEnabled.github} />

@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { LivePreview } from '@/components/editor/live-preview';
 import { Segmented } from '@/components/editor/segmented';
+import { Slider } from '@/components/ui/slider';
 import { BACKGROUNDS, FRAMES, PADDING_PRESETS } from '@/lib/templates';
 import { useEditorStore } from '@/store/editor';
 import { downloadAsset } from '@/lib/download';
@@ -195,13 +196,33 @@ export function Editor({
           />
         </Control>
 
-        <Control label="Padding">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Padding</Label>
+            <span className="text-muted-foreground font-mono text-xs tabular-nums">
+              {s.padding}px
+            </span>
+          </div>
+          {/* Quick presets… */}
           <Segmented
-            value={s.padding}
-            onChange={s.setPadding}
-            options={PADDING_PRESETS.map((p) => ({ value: p.value as number, label: p.label }))}
+            value={PADDING_PRESETS.some((p) => p.value === s.padding) ? s.padding : -1}
+            onChange={(v) => s.setPadding(v as number)}
+            options={[
+              ...PADDING_PRESETS.map((p) => ({ value: p.value as number, label: p.label })),
+              { value: -1, label: 'Custom', locked: true },
+            ]}
           />
-        </Control>
+          {/* …and a slider for anything in between. */}
+          <Slider
+            value={[s.padding]}
+            onValueChange={(values: number[]) => s.setPadding(values[0])}
+            min={0}
+            max={400}
+            step={4}
+            aria-label="Padding"
+            className="pt-1"
+          />
+        </div>
 
         <Control label="Shadow">
           <Segmented value={s.shadow} onChange={s.setShadow} options={SHADOW_OPTIONS} />

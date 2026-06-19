@@ -263,15 +263,15 @@ export function Editor({
         </Control>
       </div>
 
-      {/* Preview */}
-      <div className="space-y-4">
-        <div className="bg-muted/30 relative grid min-h-[420px] place-items-center overflow-hidden rounded-2xl border p-6">
+      {/* Preview — pinned in view so changes are visible without scrolling. */}
+      <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+        <div className="bg-muted/30 relative grid max-h-[calc(100dvh-7rem)] min-h-[420px] place-items-center overflow-hidden rounded-2xl border p-6">
           {shownAsset && s.status === 'done' ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={shownAsset.url}
               alt="Generated screenshot"
-              className="max-h-[70vh] w-auto max-w-full rounded-lg shadow-lg"
+              className="max-h-[calc(100dvh-10rem)] w-auto max-w-full rounded-lg shadow-lg"
             />
           ) : s.status === 'failed' ? (
             <div className="text-muted-foreground flex flex-col items-center gap-2 text-center">

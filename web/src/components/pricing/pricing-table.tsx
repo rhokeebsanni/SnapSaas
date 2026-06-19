@@ -8,7 +8,7 @@ import { Check, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PLAN_LIST, yearlyDiscountPercent, type Plan, type PlanId } from '@/lib/plans';
-import { formatPrice, REGIONS, REGION_LIST, type Region } from '@/lib/pricing';
+import { formatPrice, REGIONS, type Region } from '@/lib/pricing';
 import { cn } from '@/lib/utils';
 
 export function PricingTable({
@@ -23,7 +23,7 @@ export function PricingTable({
   const [region, setRegion] = React.useState<Region>('US');
   const [pending, setPending] = React.useState<PlanId | null>(null);
 
-  // Default the currency to the visitor's region (display only).
+  // Currency follows the visitor's region automatically (display only).
   React.useEffect(() => {
     import('@/lib/pricing').then(({ detectRegion }) => setRegion(detectRegion()));
   }, []);
@@ -73,7 +73,7 @@ export function PricingTable({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-center gap-3">
+      <div className="flex justify-center">
         <div className="bg-background inline-flex items-center gap-1 rounded-full border p-1 text-sm">
           <button
             type="button"
@@ -96,29 +96,11 @@ export function PricingTable({
             Yearly <span className="text-brand">save 20%</span>
           </button>
         </div>
-
-        {/* Region / currency switcher (display only — billed in USD). */}
-        <div className="bg-background inline-flex items-center gap-1 rounded-full border p-1 text-sm">
-          {REGION_LIST.map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => setRegion(r.id)}
-              className={cn(
-                'rounded-full px-3 py-1.5 transition-colors',
-                region === r.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
-              )}
-              aria-pressed={region === r.id}
-            >
-              <span aria-hidden>{r.flag}</span> {r.currency}
-            </button>
-          ))}
-        </div>
       </div>
 
       {!REGIONS[region].charged && (
         <p className="text-muted-foreground mx-auto max-w-md text-center text-xs">
-          Local {REGIONS[region].currency} pricing for {REGIONS[region].label}. Checkout is
+          Showing {REGIONS[region].currency} prices for {REGIONS[region].label}. Checkout is
           processed in USD by Lemon Squeezy (it converts your card automatically), so the exact
           amount may vary slightly with the day’s rate.
         </p>
@@ -127,7 +109,7 @@ export function PricingTable({
       <div className="grid gap-6 lg:grid-cols-3">
         {PLAN_LIST.map((plan) => {
           const usd = yearly ? plan.priceYearly : plan.priceMonthly;
-          const price = plan.priceMonthly === 0 ? '$0' : formatPrice(usd, region);
+          const price = formatPrice(usd, region);
           const suffix = plan.priceMonthly === 0 ? '' : yearly ? '/yr' : '/mo';
           const discount = yearlyDiscountPercent(plan);
           const isCurrent = currentPlan === plan.id;

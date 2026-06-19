@@ -8,10 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FadeIn } from '@/components/motion/fade-in';
 import { PLAN_LIST, yearlyDiscountPercent, type Plan } from '@/lib/plans';
+import { formatPrice, REGIONS, type Region } from '@/lib/pricing';
 import { cn } from '@/lib/utils';
 
 export function PricingTeaser() {
   const [yearly, setYearly] = React.useState(false);
+  const [region, setRegion] = React.useState<Region>('US');
+
+  // Currency follows the visitor's region automatically (display only).
+  React.useEffect(() => {
+    import('@/lib/pricing').then(({ detectRegion }) => setRegion(detectRegion()));
+  }, []);
 
   return (
     <section id="pricing" className="bg-muted/30 scroll-mt-20 border-t">
@@ -52,10 +59,17 @@ export function PricingTeaser() {
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {PLAN_LIST.map((plan, i) => (
             <FadeIn key={plan.id} delay={i * 0.06}>
-              <PriceCard plan={plan} yearly={yearly} />
+              <PriceCard plan={plan} yearly={yearly} region={region} />
             </FadeIn>
           ))}
         </div>
+
+        {!REGIONS[region].charged && (
+          <p className="text-muted-foreground mt-6 text-center text-xs">
+            Showing {REGIONS[region].currency} prices for {REGIONS[region].label} · billed in USD at
+            checkout.
+          </p>
+        )}
 
         <p className="text-muted-foreground mt-8 text-center text-sm">
           Need to generate mockups at scale?{' '}
@@ -72,8 +86,9 @@ export function PricingTeaser() {
   );
 }
 
-function PriceCard({ plan, yearly }: { plan: Plan; yearly: boolean }) {
-  const price = yearly ? plan.priceYearly : plan.priceMonthly;
+function PriceCard({ plan, yearly, region }: { plan: Plan; yearly: boolean; region: Region }) {
+  const usd = yearly ? plan.priceYearly : plan.priceMonthly;
+  const price = formatPrice(usd, region);
   const suffix = plan.priceMonthly === 0 ? '' : yearly ? '/yr' : '/mo';
   const discount = yearlyDiscountPercent(plan);
 
@@ -93,7 +108,7 @@ function PriceCard({ plan, yearly }: { plan: Plan; yearly: boolean }) {
       <p className="text-muted-foreground mt-1 text-sm">{plan.tagline}</p>
 
       <div className="mt-5 flex items-end gap-1">
-        <span className="text-4xl font-bold tracking-tight">${price}</span>
+        <span className="text-4xl font-bold tracking-tight">{price}</span>
         <span className="text-muted-foreground mb-1 text-sm">{suffix}</span>
       </div>
       {yearly && discount > 0 && (

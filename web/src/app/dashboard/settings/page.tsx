@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ProfileForm } from '@/components/settings/profile-form';
 import { getServerSession } from '@/lib/session';
 import { getAccount, getSubscription } from '@/lib/account';
 
@@ -26,14 +27,11 @@ export default async function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account details.</CardDescription>
+          <CardDescription>Update your display name and avatar.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Name</span>
-            <span className="font-medium">{session.user.name}</span>
-          </div>
-          <div className="flex justify-between">
+        <CardContent className="space-y-4">
+          <ProfileForm defaultName={session.user.name} defaultImage={session.user.image ?? null} />
+          <div className="flex justify-between border-t pt-4 text-sm">
             <span className="text-muted-foreground">Email</span>
             <span className="font-medium">{session.user.email}</span>
           </div>

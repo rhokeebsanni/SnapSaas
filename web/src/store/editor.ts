@@ -1,7 +1,15 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 
-import type { CaptureMode, FrameId, OutputFormat, OutputScale } from '@/lib/capture';
+import type {
+  CaptureMode,
+  FrameId,
+  OutputFormat,
+  OutputScale,
+  ShadowPreset,
+  TiltPreset,
+  WindowStyle,
+} from '@/lib/capture';
 
 export type RunStatus = 'idle' | 'submitting' | 'queued' | 'processing' | 'done' | 'failed';
 
@@ -22,6 +30,10 @@ interface EditorState {
   scale: OutputScale;
   format: OutputFormat;
   padding: number;
+  shadow: ShadowPreset;
+  glow: boolean;
+  tilt: TiltPreset;
+  windowStyle: WindowStyle;
 
   status: RunStatus;
   jobId: string | null;
@@ -35,6 +47,10 @@ interface EditorState {
   setScale: (scale: OutputScale) => void;
   setFormat: (format: OutputFormat) => void;
   setPadding: (padding: number) => void;
+  setShadow: (shadow: ShadowPreset) => void;
+  setGlow: (glow: boolean) => void;
+  setTilt: (tilt: TiltPreset) => void;
+  setWindowStyle: (windowStyle: WindowStyle) => void;
 
   generate: () => Promise<void>;
   reset: () => void;
@@ -53,6 +69,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   scale: 2,
   format: 'png',
   padding: 80,
+  shadow: 'medium',
+  glow: false,
+  tilt: 'none',
+  windowStyle: 'light',
 
   status: 'idle',
   jobId: null,
@@ -66,11 +86,28 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setScale: (scale) => set({ scale }),
   setFormat: (format) => set({ format }),
   setPadding: (padding) => set({ padding }),
+  setShadow: (shadow) => set({ shadow }),
+  setGlow: (glow) => set({ glow }),
+  setTilt: (tilt) => set({ tilt }),
+  setWindowStyle: (windowStyle) => set({ windowStyle }),
 
   reset: () => set({ status: 'idle', jobId: null, assets: [], error: null }),
 
   generate: async () => {
-    const { url, frame, background, mode, scale, format, padding, status } = get();
+    const {
+      url,
+      frame,
+      background,
+      mode,
+      scale,
+      format,
+      padding,
+      shadow,
+      glow,
+      tilt,
+      windowStyle,
+      status,
+    } = get();
     if (status === 'submitting' || status === 'queued' || status === 'processing') return;
 
     const trimmed = url.trim();
@@ -88,7 +125,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       const res = await fetch('/api/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: normalized, frame, background, mode, scale, format, padding }),
+        body: JSON.stringify({
+          url: normalized,
+          frame,
+          background,
+          mode,
+          scale,
+          format,
+          padding,
+          shadow,
+          glow,
+          tilt,
+          windowStyle,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -121,7 +170,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         if (data.status === 'failed') {
           const message = data.error ?? 'The capture failed.';
           set({ status: 'failed', error: message });
-          toast.error(message);
+          // Failed captures don't cost you a credit — it's refunded automatically.
+          toast.error(message, { description: "Your credit wasn't charged." });
           return;
         }
       } catch {

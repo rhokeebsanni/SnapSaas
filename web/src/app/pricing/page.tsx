@@ -55,7 +55,7 @@ export default async function PricingPage() {
 
           <PricingTable signedIn={Boolean(session)} currentPlan={currentPlan} />
 
-          <div className="mx-auto mt-20 max-w-2xl">
+          <div id="faq" className="mx-auto mt-20 max-w-2xl scroll-mt-24">
             <h2 className="mb-6 text-center text-2xl font-bold tracking-tight">
               Frequently asked questions
             </h2>

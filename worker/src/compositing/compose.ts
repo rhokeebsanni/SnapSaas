@@ -1,7 +1,7 @@
 import sharp from 'sharp';
 
-import type { CaptureSettings, RenderOutput } from '../types';
-import { getBackground, renderBackgroundSvg } from '../config/templates';
+import { SHADOW_PRESETS, TILT_DEGREES, type CaptureSettings, type RenderOutput } from '../types';
+import { getBackground, glowColorFor, renderBackgroundSvg } from '../config/templates';
 import { frameScreenshot } from './frames';
 
 function escapeXml(value: string): string {
@@ -28,43 +28,99 @@ function watermarkSvg(width: number, height: number, scale: number): Buffer {
   );
 }
 
+/** Apply a fake-perspective tilt to the framed device via a horizontal shear. */
+async function applyTilt(
+  buffer: Buffer,
+  width: number,
+  height: number,
+  degrees: number,
+): Promise<{ buffer: Buffer; width: number; height: number }> {
+  if (!degrees) return { buffer, width, height };
+  // Shear horizontally proportional to the tilt; a positive angle leans right.
+  const shear = Math.tan((degrees * Math.PI) / 180) * 0.5;
+  const out = await sharp(buffer)
+    .ensureAlpha()
+    // affine matrix [a b c d]: b is the horizontal shear term.
+    .affine([1, shear, 0, 1], { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+  const meta = await sharp(out).metadata();
+  return { buffer: out, width: meta.width ?? width, height: meta.height ?? height };
+}
+
 /**
- * Compose the final asset: capture → frame → background + shadow + padding →
- * (optional) watermark → encode to the requested format.
+ * Compose the final asset: capture → frame → (tilt) → background + glow + shadow
+ * + padding → (optional) watermark → encode to the requested format.
  */
 export async function composeAsset(shot: Buffer, settings: CaptureSettings): Promise<RenderOutput> {
   const scale = settings.scale;
   const px = (v: number) => Math.round(v * scale);
 
-  const device = await frameScreenshot(shot, settings.frame, scale, hostFromUrl(settings.url));
-  const pad = px(settings.padding);
+  const framed = await frameScreenshot(
+    shot,
+    settings.frame,
+    scale,
+    hostFromUrl(settings.url),
+    settings.windowStyle ?? 'light',
+  );
 
+  // Optional 3D tilt (Shots-style). Recompute device box from the result.
+  const tiltDeg = TILT_DEGREES[settings.tilt ?? 'none'] ?? 0;
+  const tilted = await applyTilt(framed.buffer, framed.width, framed.height, tiltDeg);
+  const device = {
+    buffer: tilted.buffer,
+    width: tilted.width,
+    height: tilted.height,
+    cornerRadius: framed.cornerRadius,
+  };
+
+  const pad = px(settings.padding);
   const canvasW = device.width + pad * 2;
   const canvasH = device.height + pad * 2;
 
+  const bg = getBackground(settings.background);
+
   // Background layer.
-  const background = Buffer.from(
-    renderBackgroundSvg(getBackground(settings.background), canvasW, canvasH),
-  );
+  const background = Buffer.from(renderBackgroundSvg(bg, canvasW, canvasH));
+
+  const layers: sharp.OverlayOptions[] = [];
+
+  // Optional colored glow: a large, blurred, bg-tinted halo behind the device.
+  if (settings.glow) {
+    const color = glowColorFor(bg);
+    const glowPad = px(40);
+    const halo = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${device.width + glowPad * 2}" height="${device.height + glowPad * 2}"><rect x="${glowPad}" y="${glowPad}" width="${device.width}" height="${device.height}" rx="${device.cornerRadius}" ry="${device.cornerRadius}" fill="${color}" fill-opacity="0.85"/></svg>`,
+    );
+    const glow = await sharp({
+      create: { width: canvasW, height: canvasH, channels: 4, background: '#00000000' },
+    })
+      .composite([{ input: halo, top: pad - glowPad, left: pad - glowPad }])
+      .blur(Math.max(12, px(48)))
+      .png()
+      .toBuffer();
+    layers.push({ input: glow, top: 0, left: 0 });
+  }
 
   // Drop shadow: a blurred dark silhouette of the device, offset downward.
-  const shadowOffset = px(22);
-  const shadowSigma = Math.max(8, px(26));
-  const silhouette = Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${device.width}" height="${device.height}"><rect width="${device.width}" height="${device.height}" rx="${device.cornerRadius}" ry="${device.cornerRadius}" fill="#000000" fill-opacity="0.38"/></svg>`,
-  );
-  const shadow = await sharp({
-    create: { width: canvasW, height: canvasH, channels: 4, background: '#00000000' },
-  })
-    .composite([{ input: silhouette, top: pad + shadowOffset, left: pad }])
-    .blur(shadowSigma)
-    .png()
-    .toBuffer();
+  const [shOffset, shBlur, shOpacity] = SHADOW_PRESETS[settings.shadow ?? 'medium'];
+  if (shOpacity > 0) {
+    const shadowOffset = px(shOffset);
+    const shadowSigma = Math.max(8, px(shBlur));
+    const silhouette = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${device.width}" height="${device.height}"><rect width="${device.width}" height="${device.height}" rx="${device.cornerRadius}" ry="${device.cornerRadius}" fill="#000000" fill-opacity="${shOpacity}"/></svg>`,
+    );
+    const shadow = await sharp({
+      create: { width: canvasW, height: canvasH, channels: 4, background: '#00000000' },
+    })
+      .composite([{ input: silhouette, top: pad + shadowOffset, left: pad }])
+      .blur(shadowSigma)
+      .png()
+      .toBuffer();
+    layers.push({ input: shadow, top: 0, left: 0 });
+  }
 
-  const layers: sharp.OverlayOptions[] = [
-    { input: shadow, top: 0, left: 0 },
-    { input: device.buffer, top: pad, left: pad },
-  ];
+  layers.push({ input: device.buffer, top: pad, left: pad });
 
   if (settings.watermark) {
     layers.push({ input: watermarkSvg(canvasW, canvasH, scale), top: 0, left: 0 });

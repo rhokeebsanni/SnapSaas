@@ -3,6 +3,13 @@ export type CaptureMode = 'full' | 'viewport';
 export type OutputFormat = 'png' | 'jpeg' | 'webp';
 export type OutputScale = 1 | 2 | 3;
 
+/** Drop-shadow depth presets. */
+export type ShadowPreset = 'none' | 'soft' | 'medium' | 'dramatic';
+/** 3D perspective tilt presets (Shots-style). */
+export type TiltPreset = 'none' | 'left' | 'right';
+/** Browser-frame chrome styling. */
+export type WindowStyle = 'light' | 'dark';
+
 export interface CaptureSettings {
   /** Public http(s) URL to capture. Validated before reaching the worker. */
   url: string;
@@ -16,11 +23,34 @@ export interface CaptureSettings {
   format: OutputFormat;
   /** Stamp the "Made with SnapSaas" watermark (free plan). */
   watermark: boolean;
+  /** Drop-shadow depth (default 'medium'). */
+  shadow?: ShadowPreset;
+  /** Soft colored glow behind the device, tinted to match the bg (default off). */
+  glow?: boolean;
+  /** 3D perspective tilt (default 'none'). */
+  tilt?: TiltPreset;
+  /** Browser chrome styling (default 'light'). Only affects the browser frame. */
+  windowStyle?: WindowStyle;
   /** Logical viewport width in CSS px (default 1280). */
   viewportWidth?: number;
   /** Logical viewport height in CSS px (default 800). */
   viewportHeight?: number;
 }
+
+/** Shadow tuning per preset: [offsetPx, blurSigmaPx, opacity]. Scaled at render. */
+export const SHADOW_PRESETS: Record<ShadowPreset, [number, number, number]> = {
+  none: [0, 0, 0],
+  soft: [14, 18, 0.28],
+  medium: [22, 26, 0.38],
+  dramatic: [38, 44, 0.5],
+};
+
+/** Tilt rotation in degrees about the Y axis (perspective applied at render). */
+export const TILT_DEGREES: Record<TiltPreset, number> = {
+  none: 0,
+  left: -18,
+  right: 18,
+};
 
 export interface RenderOutput {
   format: OutputFormat;

@@ -110,10 +110,137 @@ export const BACKGROUNDS: BackgroundPreset[] = [
       { cx: 0.5, cy: 0.95, r: 0.5, color: '#a5b4fc' },
     ],
   },
+
+  // --- Expanded catalog ---------------------------------------------------
+
+  // Cosmic / space (on-brand with the app's starry theme).
+  {
+    id: 'midnight',
+    name: 'Midnight',
+    type: 'mesh',
+    base: '#05060a',
+    blobs: [
+      { cx: 0.18, cy: 0.2, r: 0.5, color: '#312e81' },
+      { cx: 0.85, cy: 0.15, r: 0.42, color: '#1e3a8a' },
+      { cx: 0.55, cy: 0.95, r: 0.55, color: '#4c1d95' },
+    ],
+  },
+  {
+    id: 'nebula',
+    name: 'Nebula',
+    type: 'mesh',
+    base: '#0a0118',
+    blobs: [
+      { cx: 0.25, cy: 0.3, r: 0.5, color: '#db2777' },
+      { cx: 0.8, cy: 0.25, r: 0.45, color: '#7c3aed' },
+      { cx: 0.6, cy: 0.9, r: 0.55, color: '#2563eb' },
+    ],
+  },
+  {
+    id: 'cosmos',
+    name: 'Cosmos',
+    type: 'gradient',
+    angle: 160,
+    stops: [
+      [0, '#0f0c29'],
+      [0.5, '#302b63'],
+      [1, '#24243e'],
+    ],
+  },
+
+  // Duotone gradients.
+  {
+    id: 'twilight',
+    name: 'Twilight',
+    type: 'gradient',
+    angle: 135,
+    stops: [
+      [0, '#6a11cb'],
+      [1, '#2575fc'],
+    ],
+  },
+  {
+    id: 'flamingo',
+    name: 'Flamingo',
+    type: 'gradient',
+    angle: 135,
+    stops: [
+      [0, '#f857a6'],
+      [1, '#ff5858'],
+    ],
+  },
+  {
+    id: 'lagoon',
+    name: 'Lagoon',
+    type: 'gradient',
+    angle: 160,
+    stops: [
+      [0, '#43cea2'],
+      [1, '#185a9d'],
+    ],
+  },
+  {
+    id: 'peach',
+    name: 'Peach',
+    type: 'gradient',
+    angle: 135,
+    stops: [
+      [0, '#ffecd2'],
+      [1, '#fcb69f'],
+    ],
+  },
+  {
+    id: 'mango',
+    name: 'Mango',
+    type: 'gradient',
+    angle: 135,
+    stops: [
+      [0, '#ff9a9e'],
+      [1, '#fad0c4'],
+    ],
+  },
+
+  // Mesh blends.
+  {
+    id: 'iris',
+    name: 'Iris',
+    type: 'mesh',
+    base: '#1e1b4b',
+    blobs: [
+      { cx: 0.2, cy: 0.25, r: 0.5, color: '#8b5cf6' },
+      { cx: 0.85, cy: 0.3, r: 0.45, color: '#ec4899' },
+      { cx: 0.5, cy: 0.95, r: 0.5, color: '#3b82f6' },
+    ],
+  },
+  {
+    id: 'mint',
+    name: 'Mint',
+    type: 'mesh',
+    base: '#ecfdf5',
+    blobs: [
+      { cx: 0.2, cy: 0.2, r: 0.45, color: '#6ee7b7' },
+      { cx: 0.85, cy: 0.3, r: 0.4, color: '#7dd3fc' },
+      { cx: 0.5, cy: 0.95, r: 0.5, color: '#a7f3d0' },
+    ],
+  },
+
+  // Solids (clean, neutral, brand).
+  { id: 'pure-white', name: 'Pure White', type: 'solid', color: '#ffffff' },
+  { id: 'slate', name: 'Slate', type: 'solid', color: '#334155' },
+  { id: 'ink', name: 'Ink', type: 'solid', color: '#0b0b0f' },
+  { id: 'sand', name: 'Sand', type: 'solid', color: '#e7e2d9' },
+  { id: 'brand-violet', name: 'Brand Violet', type: 'solid', color: '#6d28d9' },
 ];
 
 export function getBackground(id: string): BackgroundPreset {
   return BACKGROUNDS.find((b) => b.id === id) ?? BACKGROUNDS[0]!;
+}
+
+/** A representative accent color for a background, used to tint the optional glow. */
+export function glowColorFor(bg: BackgroundPreset): string {
+  if (bg.type === 'solid') return bg.color;
+  if (bg.type === 'gradient') return bg.stops[0]?.[1] ?? '#7c3aed';
+  return bg.blobs[0]?.color ?? '#7c3aed';
 }
 
 function escapeXml(value: string): string {

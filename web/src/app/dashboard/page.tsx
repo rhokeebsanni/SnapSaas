@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CaptureCard } from '@/components/dashboard/capture-card';
+import { UpgradeToast } from '@/components/dashboard/upgrade-toast';
 import { getServerSession } from '@/lib/session';
 import { getAccount } from '@/lib/account';
 import { getRecentCaptures } from '@/lib/projects';
@@ -26,6 +28,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <React.Suspense fallback={null}>
+        <UpgradeToast />
+      </React.Suspense>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">

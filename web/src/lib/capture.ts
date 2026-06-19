@@ -4,6 +4,9 @@ export type FrameId = 'browser' | 'macbook' | 'iphone';
 export type CaptureMode = 'full' | 'viewport';
 export type OutputFormat = 'png' | 'jpeg' | 'webp';
 export type OutputScale = 1 | 2 | 3;
+export type ShadowPreset = 'none' | 'soft' | 'medium' | 'dramatic';
+export type TiltPreset = 'none' | 'left' | 'right';
+export type WindowStyle = 'light' | 'dark';
 
 /**
  * Settings accepted from the editor. Kept in sync with the worker's schema; the
@@ -18,6 +21,10 @@ export const captureSettingsSchema = z.object({
   scale: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(2),
   padding: z.number().int().min(0).max(400).default(80),
   format: z.enum(['png', 'jpeg', 'webp']).default('png'),
+  shadow: z.enum(['none', 'soft', 'medium', 'dramatic']).default('medium'),
+  glow: z.boolean().default(false),
+  tilt: z.enum(['none', 'left', 'right']).default('none'),
+  windowStyle: z.enum(['light', 'dark']).default('light'),
   viewportWidth: z.number().int().min(320).max(2560).optional(),
   viewportHeight: z.number().int().min(320).max(4000).optional(),
 });

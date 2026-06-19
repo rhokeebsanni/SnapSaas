@@ -13,18 +13,24 @@ export interface Account {
 
 /** Fetch the product-level account state (plan + credits) for a user. */
 export async function getAccount(userId: string): Promise<Account> {
-  const rows = await db
-    .select({ plan: user.plan, credits: user.credits })
-    .from(user)
-    .where(eq(user.id, userId))
-    .limit(1);
+  try {
+    const rows = await db
+      .select({ plan: user.plan, credits: user.credits })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
 
-  const row = rows[0];
-  const planId = (row?.plan ?? 'free') as PlanId;
-  return {
-    plan: PLANS[planId] ?? PLANS.free,
-    credits: row?.credits ?? 0,
-  };
+    const row = rows[0];
+    const planId = (row?.plan ?? 'free') as PlanId;
+    return {
+      plan: PLANS[planId] ?? PLANS.free,
+      credits: row?.credits ?? 0,
+    };
+  } catch (err) {
+    // Never crash a page over account lookup — fall back to the free plan.
+    console.error('[account] getAccount failed:', err);
+    return { plan: PLANS.free, credits: 0 };
+  }
 }
 
 /** The user's latest subscription row (for the billing portal + status). */

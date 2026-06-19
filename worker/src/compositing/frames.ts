@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 
-import type { FrameId } from '../types';
+import type { FrameId, WindowStyle } from '../types';
 
 export interface FramedDevice {
   buffer: Buffer;
@@ -38,12 +38,23 @@ async function dimensions(buf: Buffer): Promise<{ width: number; height: number 
   return { width: meta.width ?? 0, height: meta.height ?? 0 };
 }
 
-async function browserFrame(shot: Buffer, scale: number, url: string): Promise<FramedDevice> {
+async function browserFrame(
+  shot: Buffer,
+  scale: number,
+  url: string,
+  windowStyle: WindowStyle,
+): Promise<FramedDevice> {
   const px = (v: number) => Math.round(v * scale);
   const { width: w, height: h } = await dimensions(shot);
   const toolbar = px(38);
   const radius = px(12);
   const deviceH = toolbar + h;
+
+  const dark = windowStyle === 'dark';
+  const chrome = dark ? '#2b2d31' : '#edeef1';
+  const pill = dark ? '#1c1d20' : '#ffffff';
+  const pillText = dark ? '#9ca3af' : '#6b7280';
+  const baseBg = dark ? '#1c1d20' : '#ffffff';
 
   const dot = (cx: number, color: string) =>
     `<circle cx="${cx}" cy="${toolbar / 2}" r="${px(6)}" fill="${color}"/>`;
@@ -51,15 +62,15 @@ async function browserFrame(shot: Buffer, scale: number, url: string): Promise<F
   const pillX = (w - pillW) / 2;
   const toolbarSvg = Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${toolbar}">
-      <rect width="${w}" height="${toolbar}" fill="#edeef1"/>
+      <rect width="${w}" height="${toolbar}" fill="${chrome}"/>
       ${dot(px(22), '#ff5f57')}${dot(px(42), '#febc2e')}${dot(px(62), '#28c840')}
-      <rect x="${pillX}" y="${toolbar * 0.26}" width="${pillW}" height="${toolbar * 0.48}" rx="${px(7)}" fill="#ffffff"/>
-      <text x="${w / 2}" y="${toolbar / 2}" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="${px(13)}" fill="#6b7280" text-anchor="middle" dominant-baseline="central">${escapeXml(url)}</text>
+      <rect x="${pillX}" y="${toolbar * 0.26}" width="${pillW}" height="${toolbar * 0.48}" rx="${px(7)}" fill="${pill}"/>
+      <text x="${w / 2}" y="${toolbar / 2}" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="${px(13)}" fill="${pillText}" text-anchor="middle" dominant-baseline="central">${escapeXml(url)}</text>
     </svg>`,
   );
 
   const composed = await sharp({
-    create: { width: w, height: deviceH, channels: 4, background: '#ffffff' },
+    create: { width: w, height: deviceH, channels: 4, background: baseBg },
   })
     .composite([
       { input: toolbarSvg, top: 0, left: 0 },
@@ -151,6 +162,7 @@ export function frameScreenshot(
   frame: FrameId,
   scale: number,
   url: string,
+  windowStyle: WindowStyle = 'light',
 ): Promise<FramedDevice> {
   switch (frame) {
     case 'macbook':
@@ -159,6 +171,6 @@ export function frameScreenshot(
       return iphoneFrame(shot, scale);
     case 'browser':
     default:
-      return browserFrame(shot, scale, url);
+      return browserFrame(shot, scale, url, windowStyle);
   }
 }

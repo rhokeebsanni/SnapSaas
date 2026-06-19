@@ -95,6 +95,7 @@ export async function POST(request: Request) {
         userId,
         status: 'queued',
         settings,
+        creditSpent: finiteCredits,
       });
       if (finiteCredits) {
         await tx
@@ -107,11 +108,26 @@ export async function POST(request: Request) {
     await enqueueCapture(jobId);
   } catch (err) {
     console.error('[capture] failed to enqueue:', err);
-    // Best-effort: flag the job as failed so the client stops polling.
+    // We never even reached the worker — fail the job AND refund the credit we
+    // just spent, in one transaction, so the user isn't charged for nothing.
     await db
-      .update(job)
-      .set({ status: 'failed', error: 'Could not start the capture.', updatedAt: new Date() })
-      .where(eq(job.id, jobId))
+      .transaction(async (tx) => {
+        await tx
+          .update(job)
+          .set({
+            status: 'failed',
+            error: 'Could not start the capture.',
+            creditRefunded: finiteCredits,
+            updatedAt: new Date(),
+          })
+          .where(eq(job.id, jobId));
+        if (finiteCredits) {
+          await tx
+            .update(user)
+            .set({ credits: sql`${user.credits} + 1`, updatedAt: new Date() })
+            .where(eq(user.id, userId));
+        }
+      })
       .catch(() => undefined);
     return NextResponse.json({ error: 'Could not start the capture.' }, { status: 502 });
   }

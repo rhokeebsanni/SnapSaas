@@ -64,3 +64,49 @@ export async function sendVerificationEmail(to: string, url: string): Promise<vo
     ),
   );
 }
+
+/** Where contact-form messages are delivered. */
+export const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'support@snapsaas.app';
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Deliver a contact-form submission to the support inbox. Returns false when
+ * email isn't configured so the caller can fall back to a mailto link.
+ */
+export async function sendContactMessage(input: {
+  name: string;
+  email: string;
+  topic: string;
+  message: string;
+}): Promise<boolean> {
+  const r = getResend();
+  if (!r) return false;
+  const html = layout(
+    `New ${escapeHtml(input.topic)} message`,
+    `<p><strong>From:</strong> ${escapeHtml(input.name)} &lt;${escapeHtml(input.email)}&gt;</p>
+     <p><strong>Topic:</strong> ${escapeHtml(input.topic)}</p>
+     <p style="white-space:pre-wrap;border-left:3px solid #7c3aed;padding-left:12px;margin-top:16px">${escapeHtml(
+       input.message,
+     )}</p>`,
+  );
+  try {
+    await r.emails.send({
+      from: FROM,
+      to: SUPPORT_EMAIL,
+      replyTo: input.email,
+      subject: `[SnapSaas] ${input.topic} — ${input.name}`,
+      html,
+    });
+    return true;
+  } catch (err) {
+    console.error('[email] contact send failed:', err);
+    return false;
+  }
+}

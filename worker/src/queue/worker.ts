@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { Worker, type Job as BullJob, type RedisOptions } from 'bullmq';
-import { eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import { env } from '../env';
 import { getDb, schema } from '../db';
@@ -69,6 +69,44 @@ async function processCapture(bullJob: BullJob<CaptureJobData>): Promise<void> {
   }
 }
 
+/**
+ * Mark a job failed and, if it spent a finite credit, refund exactly one credit
+ * to its owner. The conditional `creditRefunded` flip makes the refund safe
+ * against retries / duplicate `failed` events: only the update that actually
+ * flips the flag (returns a row) performs the credit bump.
+ */
+async function refundOnFailure(
+  db: NonNullable<ReturnType<typeof getDb>>,
+  jobId: string,
+  message: string,
+): Promise<void> {
+  await db
+    .update(schema.job)
+    .set({ status: 'failed', error: message.slice(0, 500), updatedAt: new Date() })
+    .where(eq(schema.job.id, jobId));
+
+  const refunded = await db
+    .update(schema.job)
+    .set({ creditRefunded: true, updatedAt: new Date() })
+    .where(
+      and(
+        eq(schema.job.id, jobId),
+        eq(schema.job.creditSpent, true),
+        eq(schema.job.creditRefunded, false),
+      ),
+    )
+    .returning({ userId: schema.job.userId });
+
+  const userId = refunded[0]?.userId;
+  if (userId) {
+    await db
+      .update(schema.user)
+      .set({ credits: sql`${schema.user.credits} + 1` })
+      .where(eq(schema.user.id, userId));
+    console.log(`[queue] refunded 1 credit to ${userId} for failed job ${jobId}`);
+  }
+}
+
 function redisConnection(url: string): RedisOptions {
   const u = new URL(url);
   return {
@@ -99,15 +137,11 @@ export function startCaptureWorker(): Worker<CaptureJobData> | null {
   worker.on('completed', (job) => console.log(`[queue] job ${job.data.jobId} done`));
   worker.on('failed', async (job, err) => {
     console.error(`[queue] job ${job?.data.jobId} failed:`, err.message);
-    // Persist the failure so the web client stops polling.
     const db = getDb();
-    if (db && job) {
-      await db
-        .update(schema.job)
-        .set({ status: 'failed', error: err.message.slice(0, 500), updatedAt: new Date() })
-        .where(eq(schema.job.id, job.data.jobId))
-        .catch(() => undefined);
-    }
+    if (!db || !job) return;
+    await refundOnFailure(db, job.data.jobId, err.message).catch((e) =>
+      console.error('[queue] refund/mark-failed error:', e),
+    );
   });
 
   console.log('🎯 Capture queue worker started');

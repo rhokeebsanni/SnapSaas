@@ -117,9 +117,10 @@ export function PricingTable({
       </div>
 
       {!REGIONS[region].charged && (
-        <p className="text-muted-foreground text-center text-xs">
-          Prices shown in {REGIONS[region].currency} are an estimate — you’re billed in USD by Lemon
-          Squeezy, which converts at checkout.
+        <p className="text-muted-foreground mx-auto max-w-md text-center text-xs">
+          Local {REGIONS[region].currency} pricing for {REGIONS[region].label}. Checkout is
+          processed in USD by Lemon Squeezy (it converts your card automatically), so the exact
+          amount may vary slightly with the day’s rate.
         </p>
       )}
 

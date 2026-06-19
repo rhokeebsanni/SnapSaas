@@ -62,7 +62,8 @@ export function Hero() {
     <section className="relative overflow-hidden">
       {/* Ambient background */}
       <div className="bg-grid pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-      <div className="bg-brand/20 pointer-events-none absolute left-1/2 top-[-10%] -z-10 h-[400px] w-[700px] -translate-x-1/2 rounded-full blur-3xl" />
+      <div className="bg-brand/25 pointer-events-none absolute left-1/2 top-[-10%] -z-10 h-[420px] w-[720px] -translate-x-1/2 rounded-full blur-3xl" />
+      <div className="bg-brand-2/15 pointer-events-none absolute right-[-5%] top-[20%] -z-10 h-[300px] w-[300px] rounded-full blur-3xl" />
 
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 sm:pt-24">
         <div className="mx-auto max-w-3xl text-center">
@@ -162,15 +163,21 @@ export function Hero() {
             ))}
           </div>
 
-          <div className="from-muted/40 to-muted/10 rounded-3xl border bg-gradient-to-br p-6 sm:p-10">
+          <div className="from-muted/40 to-muted/10 relative overflow-hidden rounded-3xl border bg-gradient-to-br p-6 sm:p-10">
+            <div className="bg-brand/10 pointer-events-none absolute -inset-10 -z-10 rounded-full blur-3xl" />
             <div className="relative">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${variant}-${shotKey}`}
                   initial={{ opacity: 0, scale: 0.98, y: 8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  animate={{ opacity: 1, scale: 1, y: [0, -6, 0] }}
                   exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.35 }}
+                  transition={{
+                    opacity: { duration: 0.35 },
+                    scale: { duration: 0.35 },
+                    y: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
+                  }}
+                  className="[filter:drop-shadow(0_30px_50px_rgba(0,0,0,0.35))]"
                 >
                   <DeviceFrame variant={variant} url={normalizeHost(url)}>
                     <MockSite tone={TONES[tone]} />

@@ -124,6 +124,14 @@ export function Editor({
               Generate
             </Button>
           </div>
+          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+            Tip: press
+            <kbd className="bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">
+              ⌘ / Ctrl
+            </kbd>
+            <kbd className="bg-muted rounded border px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd>
+            to generate.
+          </p>
         </form>
 
         <Control label="Frame">

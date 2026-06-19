@@ -13,10 +13,19 @@ export interface RegionMeta {
   flag: string;
   currency: 'USD' | 'NGN';
   symbol: string;
-  /** Multiplier applied to the base USD price to estimate the local figure. */
+  /**
+   * Multiplier applied to the base USD price to estimate the local figure
+   * (kept for any region without explicit price points).
+   */
   rate: number;
   /** Whether the charge actually happens in this currency. */
   charged: boolean;
+  /**
+   * Explicit local price points, keyed by the base USD price. Used for
+   * purchasing-power-adjusted regional pricing (e.g. Nigeria) so we don't
+   * just FX-convert into an unaffordable number.
+   */
+  priceMap?: Record<number, number>;
 }
 
 export const REGIONS: Record<Region, RegionMeta> = {
@@ -38,6 +47,15 @@ export const REGIONS: Record<Region, RegionMeta> = {
     symbol: '₦',
     rate: 1600,
     charged: false,
+    // Purchasing-power-adjusted naira prices (≈ a local-friendly tier, not a
+    // raw FX conversion). Keyed by the plan's base USD price.
+    priceMap: {
+      0: 0,
+      12: 7500, // Pro monthly
+      108: 75000, // Pro yearly
+      29: 18000, // Team monthly
+      290: 180000, // Team yearly
+    },
   },
 };
 
@@ -62,9 +80,10 @@ export function detectRegion(): Region {
 /** Format a base USD price into the chosen region's currency. */
 export function formatPrice(usd: number, region: Region): string {
   const meta = REGIONS[region];
-  const value = Math.round(usd * meta.rate);
+  // Prefer an explicit, purchasing-power-adjusted price point when we have one.
+  const mapped = meta.priceMap?.[usd];
+  const value = mapped ?? Math.round(usd * meta.rate);
   if (meta.currency === 'NGN') {
-    // Whole naira, grouped: ₦19,200
     return `${meta.symbol}${value.toLocaleString('en-NG')}`;
   }
   return `${meta.symbol}${value}`;

@@ -7,6 +7,7 @@ import { captureSettingsSchema } from './schema';
 import { renderCapture } from './render';
 import { closeBrowser } from './capture/browser';
 import { startCaptureWorker } from './queue/worker';
+import { isR2Configured } from './storage/r2';
 import { BACKGROUNDS, FRAMES } from './config/templates';
 import type { CaptureSettings, OutputFormat } from './types';
 
@@ -31,7 +32,23 @@ function requireSecret(req: Request, res: Response, next: NextFunction) {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'snapsaas-worker', uptime: process.uptime() });
+  // Report which integrations the worker can see, so the web app's preflight
+  // can show exactly what's wired up and whether the queue consumer is running.
+  const database = Boolean(env.DATABASE_URL);
+  const queue = Boolean(env.REDIS_URL);
+  const storage = isR2Configured();
+  res.json({
+    status: 'ok',
+    service: 'snapsaas-worker',
+    uptime: process.uptime(),
+    config: {
+      database,
+      queue,
+      storage,
+      // The async consumer only runs when both DB and Redis are present.
+      consumerRunning: database && queue,
+    },
+  });
 });
 
 /** Public catalog of frames + backgrounds, consumed by the editor UI. */

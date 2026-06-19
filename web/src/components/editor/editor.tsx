@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { LivePreview } from '@/components/editor/live-preview';
+import { PreflightStatus } from '@/components/editor/preflight-status';
 import { Segmented } from '@/components/editor/segmented';
 import { Slider } from '@/components/ui/slider';
 import { BACKGROUNDS, FRAMES, PADDING_PRESETS } from '@/lib/templates';
@@ -99,6 +100,8 @@ export function Editor({
     <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
       {/* Controls */}
       <div className="space-y-6">
+        <PreflightStatus />
+
         <form
           onSubmit={(e) => {
             e.preventDefault();

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import type { Metadata } from 'next';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
   title: 'Sign in',
   description: 'Sign in to your SnapSaas account.',
 };
+
+// Reads ?next= via useSearchParams in the form, so render dynamically.
+export const dynamic = 'force-dynamic';
 
 export default function SignInPage() {
   const hasOAuth = oauthEnabled.google || oauthEnabled.github;
@@ -27,7 +31,9 @@ export default function SignInPage() {
             <span className="bg-border absolute left-0 top-1/2 -z-0 h-px w-full" />
           </div>
         )}
-        <SignInForm />
+        <React.Suspense fallback={null}>
+          <SignInForm />
+        </React.Suspense>
       </CardContent>
     </Card>
   );

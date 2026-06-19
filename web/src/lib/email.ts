@@ -65,6 +65,25 @@ export async function sendVerificationEmail(to: string, url: string): Promise<vo
   );
 }
 
+/** Invite someone to a team. Best-effort — the link also appears in the UI. */
+export async function sendTeamInviteEmail(
+  to: string,
+  inviterName: string,
+  teamName: string,
+  acceptUrl: string,
+): Promise<void> {
+  await send(
+    to,
+    `${inviterName || 'Someone'} invited you to ${teamName} on SnapSaas`,
+    layout(
+      `You’re invited to ${teamName}`,
+      `<p>${inviterName || 'A teammate'} has invited you to join their team on SnapSaas — you’ll get Pro features as part of the team.</p>
+       ${button(acceptUrl, 'Accept invite')}
+       <p style="font-size:12px;color:#6b7280;margin-top:16px">If you didn’t expect this, you can ignore this email.</p>`,
+    ),
+  );
+}
+
 /** Where contact-form messages are delivered. */
 export const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL ?? 'support@snapsaas.app';
 

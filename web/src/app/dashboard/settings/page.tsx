@@ -5,8 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProfileForm } from '@/components/settings/profile-form';
+import { TeamSettings } from '@/components/settings/team-settings';
+import { CreateTeamButton } from '@/components/settings/create-team-button';
+import { DeleteAccount } from '@/components/settings/delete-account';
 import { getServerSession } from '@/lib/session';
 import { getAccount, getSubscription } from '@/lib/account';
+import { getTeamContext } from '@/lib/team';
 
 export const metadata: Metadata = { title: 'Settings' };
 
@@ -16,6 +20,8 @@ export default async function SettingsPage() {
 
   const account = await getAccount(session.user.id);
   const sub = await getSubscription(session.user.id);
+  const teamCtx = await getTeamContext(session.user.id);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -82,6 +88,55 @@ export default async function SettingsPage() {
               </Button>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Team */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Team</CardTitle>
+          <CardDescription>
+            {teamCtx
+              ? 'Invite teammates to share your Team plan.'
+              : account.plan.id === 'team'
+                ? 'Create your team and invite up to your seat limit.'
+                : 'Teams are part of the Team plan.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {teamCtx ? (
+            <TeamSettings
+              isOwner={teamCtx.role === 'owner'}
+              members={teamCtx.members}
+              invites={teamCtx.invites}
+              seatsUsed={teamCtx.seatsUsed}
+              seatsTotal={teamCtx.seatsTotal}
+              appUrl={appUrl}
+            />
+          ) : account.plan.id === 'team' ? (
+            <CreateTeamButton />
+          ) : (
+            <div className="flex flex-col items-start justify-between gap-3 text-sm sm:flex-row sm:items-center">
+              <p className="text-muted-foreground">
+                Upgrade to the <span className="text-foreground font-medium">Team</span> plan to
+                invite teammates and share Pro features.
+              </p>
+              <Button variant="outline" asChild>
+                <a href="/pricing">View Team plan</a>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Danger zone */}
+      <Card className="border-destructive/30">
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger zone</CardTitle>
+          <CardDescription>Irreversible actions for your account.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DeleteAccount />
         </CardContent>
       </Card>
     </div>

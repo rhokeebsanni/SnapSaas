@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,9 @@ import { signUp } from '@/lib/auth-client';
 
 export function SignUpForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const nextParam = params.get('next');
+  const next = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard';
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -31,14 +34,14 @@ export function SignUpForm() {
     }
 
     setPending(true);
-    const { error } = await signUp.email({ name, email, password, callbackURL: '/dashboard' });
+    const { error } = await signUp.email({ name, email, password, callbackURL: next });
     setPending(false);
 
     if (error) {
       setError(error.message ?? 'Could not create your account.');
       return;
     }
-    router.push('/dashboard');
+    router.push(next);
     router.refresh();
   }
 

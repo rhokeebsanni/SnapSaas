@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoaderCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,10 @@ import { signIn } from '@/lib/auth-client';
 
 export function SignInForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  // Only allow same-app relative redirects (avoid open-redirect).
+  const nextParam = params.get('next');
+  const next = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard';
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -24,14 +28,14 @@ export function SignInForm() {
     const password = String(form.get('password') ?? '');
 
     setPending(true);
-    const { error } = await signIn.email({ email, password, callbackURL: '/dashboard' });
+    const { error } = await signIn.email({ email, password, callbackURL: next });
     setPending(false);
 
     if (error) {
       setError(error.message ?? 'Invalid email or password.');
       return;
     }
-    router.push('/dashboard');
+    router.push(next);
     router.refresh();
   }
 

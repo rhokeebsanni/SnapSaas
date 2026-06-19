@@ -24,6 +24,8 @@ export const user = pgTable('user', {
   // New users get a 30-day Pro trial; while `now < trialEndsAt` they are treated
   // as Pro regardless of `plan`. Null once the trial has been consumed/expired.
   trialEndsAt: timestamp('trial_ends_at'),
+  // The team this user belongs to (null = solo). Members inherit the team's plan.
+  teamId: text('team_id'),
 
   createdAt: timestamp('created_at')
     .$defaultFn(() => new Date())
@@ -142,9 +144,52 @@ export const subscription = pgTable('subscription', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+/**
+ * Teams: a Team-plan subscriber owns one `team`; others join as members. A
+ * member inherits the team's plan (Pro) up to the seat limit. Invites are by
+ * email and accepted via a token while signed in.
+ */
+export const team = pgTable('team', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  ownerId: text('owner_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  /** Plan the team confers on its members (typically 'team'). */
+  plan: text('plan').notNull().default('team'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const teamMember = pgTable('team_member', {
+  id: text('id').primaryKey(),
+  teamId: text('team_id')
+    .notNull()
+    .references(() => team.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  role: text('role').notNull().default('member'), // 'owner' | 'member'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const teamInvite = pgTable('team_invite', {
+  id: text('id').primaryKey(),
+  teamId: text('team_id')
+    .notNull()
+    .references(() => team.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  token: text('token').notNull().unique(),
+  status: text('status').notNull().default('pending'), // 'pending' | 'accepted' | 'revoked'
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
+});
+
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Project = typeof project.$inferSelect;
 export type Job = typeof job.$inferSelect;
 export type Asset = typeof asset.$inferSelect;
+export type Team = typeof team.$inferSelect;
+export type TeamMember = typeof teamMember.$inferSelect;
+export type TeamInvite = typeof teamInvite.$inferSelect;
 export type Subscription = typeof subscription.$inferSelect;

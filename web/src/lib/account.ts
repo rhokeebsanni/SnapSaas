@@ -15,6 +15,8 @@ export interface Account {
   trialEndsAt: Date | null;
   /** Whole days left in the trial (0 when not on trial). */
   trialDaysLeft: number;
+  /** True when the user belongs to a team (and inherits the Team plan). */
+  onTeam: boolean;
 }
 
 /**
@@ -27,7 +29,12 @@ export interface Account {
 export async function getAccount(userId: string): Promise<Account> {
   try {
     const rows = await db
-      .select({ plan: user.plan, credits: user.credits, trialEndsAt: user.trialEndsAt })
+      .select({
+        plan: user.plan,
+        credits: user.credits,
+        trialEndsAt: user.trialEndsAt,
+        teamId: user.teamId,
+      })
       .from(user)
       .where(eq(user.id, userId))
       .limit(1);
@@ -40,7 +47,11 @@ export async function getAccount(userId: string): Promise<Account> {
     const trialActive =
       storedPlanId === 'free' && trialEndsAt !== null && trialEndsAt.getTime() > Date.now();
 
-    const effectivePlanId: PlanId = trialActive ? 'pro' : storedPlanId;
+    // Team members inherit the Team plan (the strongest tier). This takes
+    // precedence over a personal plan/trial.
+    const onTeam = Boolean(row?.teamId);
+
+    const effectivePlanId: PlanId = onTeam ? 'team' : trialActive ? 'pro' : storedPlanId;
     const trialDaysLeft = trialActive
       ? Math.max(0, Math.ceil((trialEndsAt!.getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
       : 0;
@@ -48,14 +59,22 @@ export async function getAccount(userId: string): Promise<Account> {
     return {
       plan: PLANS[effectivePlanId] ?? PLANS.free,
       credits: row?.credits ?? 0,
-      onTrial: trialActive,
+      onTrial: trialActive && !onTeam,
       trialEndsAt,
-      trialDaysLeft,
+      trialDaysLeft: onTeam ? 0 : trialDaysLeft,
+      onTeam,
     };
   } catch (err) {
     // Never crash a page over account lookup — fall back to the free plan.
     console.error('[account] getAccount failed:', err);
-    return { plan: PLANS.free, credits: 0, onTrial: false, trialEndsAt: null, trialDaysLeft: 0 };
+    return {
+      plan: PLANS.free,
+      credits: 0,
+      onTrial: false,
+      trialEndsAt: null,
+      trialDaysLeft: 0,
+      onTeam: false,
+    };
   }
 }
 

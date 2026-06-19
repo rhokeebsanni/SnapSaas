@@ -10,12 +10,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { DeviceFrame, MockSite } from '@/components/device-frame';
+import { LivePreview } from '@/components/editor/live-preview';
 import { Segmented } from '@/components/editor/segmented';
-import { BACKGROUNDS, FRAMES, PADDING_PRESETS, getBackground } from '@/lib/templates';
+import { BACKGROUNDS, FRAMES, PADDING_PRESETS } from '@/lib/templates';
 import { useEditorStore } from '@/store/editor';
 import { downloadAsset } from '@/lib/download';
-import type { OutputFormat, OutputScale } from '@/lib/capture';
+import type {
+  OutputFormat,
+  OutputScale,
+  ShadowPreset,
+  TiltPreset,
+  WindowStyle,
+} from '@/lib/capture';
 import { cn } from '@/lib/utils';
 
 const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
@@ -24,16 +30,23 @@ const FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
   { value: 'webp', label: 'WebP' },
 ];
 
-const TONE_BY_BG: Record<string, 'violet' | 'teal' | 'amber' | 'rose'> = {
-  'violet-dream': 'violet',
-  ocean: 'teal',
-  sunset: 'amber',
-  forest: 'teal',
-  aurora: 'violet',
-  candy: 'rose',
-  graphite: 'violet',
-  snow: 'rose',
-};
+const SHADOW_OPTIONS: { value: ShadowPreset; label: string }[] = [
+  { value: 'none', label: 'None' },
+  { value: 'soft', label: 'Soft' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'dramatic', label: 'Bold' },
+];
+
+const TILT_OPTIONS: { value: TiltPreset; label: string }[] = [
+  { value: 'none', label: 'Flat' },
+  { value: 'left', label: 'Left' },
+  { value: 'right', label: 'Right' },
+];
+
+const WINDOW_OPTIONS: { value: WindowStyle; label: string }[] = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
 
 export function Editor({
   maxScale,
@@ -77,8 +90,9 @@ export function Editor({
   }, [runGenerate]);
 
   const busy = s.status === 'submitting' || s.status === 'queued' || s.status === 'processing';
-  const bg = getBackground(s.background);
   const shownAsset = s.assets.find((a) => a.format === s.format) ?? s.assets[0] ?? null;
+  // The browser frame is the only one with chrome styling.
+  const showWindowStyle = s.frame === 'browser';
 
   return (
     <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
@@ -181,6 +195,40 @@ export function Editor({
           />
         </Control>
 
+        <Control label="Shadow">
+          <Segmented value={s.shadow} onChange={s.setShadow} options={SHADOW_OPTIONS} />
+        </Control>
+
+        <Control label="3D tilt">
+          <Segmented value={s.tilt} onChange={s.setTilt} options={TILT_OPTIONS} />
+        </Control>
+
+        {showWindowStyle && (
+          <Control label="Window">
+            <Segmented value={s.windowStyle} onChange={s.setWindowStyle} options={WINDOW_OPTIONS} />
+          </Control>
+        )}
+
+        <Control label="Glow">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={s.glow}
+            onClick={() => s.setGlow(!s.glow)}
+            className={cn(
+              'relative inline-flex h-7 w-12 items-center rounded-full border transition-colors',
+              s.glow ? 'bg-brand border-brand' : 'bg-muted/40',
+            )}
+          >
+            <span
+              className={cn(
+                'inline-block size-5 rounded-full bg-white shadow transition-transform',
+                s.glow ? 'translate-x-6' : 'translate-x-1',
+              )}
+            />
+          </button>
+        </Control>
+
         <Control label="Download format">
           <Segmented value={s.format} onChange={s.setFormat} options={FORMAT_OPTIONS} />
         </Control>
@@ -205,13 +253,17 @@ export function Editor({
               </Button>
             </div>
           ) : (
-            <div
-              className="grid w-full max-w-xl place-items-center rounded-xl p-8"
-              style={{ background: bg.css }}
-            >
-              <DeviceFrame variant={s.frame} url={s.url || 'yoursite.com'} className="w-full">
-                <MockSite tone={TONE_BY_BG[s.background] ?? 'violet'} />
-              </DeviceFrame>
+            <div className="w-full max-w-xl">
+              <LivePreview
+                url={s.url}
+                frame={s.frame}
+                background={s.background}
+                padding={s.padding}
+                shadow={s.shadow}
+                glow={s.glow}
+                tilt={s.tilt}
+                windowStyle={s.windowStyle}
+              />
             </div>
           )}
 

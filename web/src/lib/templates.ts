@@ -106,6 +106,17 @@ export function getBackground(id: string): BackgroundOption {
   return BACKGROUNDS.find((b) => b.id === id) ?? BACKGROUNDS[0];
 }
 
+/**
+ * A representative accent color for a background, used to tint the preview glow.
+ * Pulls the first hex color out of the background's `css` string, falling back
+ * to the brand violet.
+ */
+export function glowColorForCss(id: string): string {
+  const css = getBackground(id).css;
+  const match = css.match(/#[0-9a-fA-F]{3,8}/);
+  return match?.[0] ?? '#7c3aed';
+}
+
 export const PADDING_PRESETS = [
   { id: 'sm', label: 'S', value: 48 },
   { id: 'md', label: 'M', value: 80 },

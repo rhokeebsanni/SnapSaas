@@ -8,6 +8,8 @@ interface DeviceFrameProps extends React.ComponentProps<'div'> {
   variant?: FrameVariant;
   /** Address bar label for the browser frame. */
   url?: string;
+  /** Browser chrome styling (browser variant only). */
+  windowStyle?: 'light' | 'dark';
   children?: React.ReactNode;
 }
 
@@ -19,6 +21,7 @@ interface DeviceFrameProps extends React.ComponentProps<'div'> {
 export function DeviceFrame({
   variant = 'browser',
   url = 'yoursite.com',
+  windowStyle = 'light',
   className,
   children,
   ...props
@@ -55,21 +58,33 @@ export function DeviceFrame({
   }
 
   // Default: browser window chrome.
+  const dark = windowStyle === 'dark';
   return (
     <div
       className={cn(
-        'bg-card overflow-hidden rounded-xl border shadow-2xl ring-1 ring-black/5',
+        'overflow-hidden rounded-xl border shadow-2xl ring-1 ring-black/5',
+        dark ? 'border-neutral-700 bg-neutral-900' : 'bg-card',
         className,
       )}
       {...props}
     >
-      <div className="bg-muted/60 flex items-center gap-2 border-b px-3 py-2.5">
+      <div
+        className={cn(
+          'flex items-center gap-2 border-b px-3 py-2.5',
+          dark ? 'border-neutral-700 bg-neutral-800' : 'bg-muted/60',
+        )}
+      >
         <div className="flex gap-1.5">
           <span className="size-3 rounded-full bg-red-400/80" />
           <span className="size-3 rounded-full bg-yellow-400/80" />
           <span className="size-3 rounded-full bg-green-400/80" />
         </div>
-        <div className="bg-background text-muted-foreground mx-auto flex h-6 w-full max-w-sm items-center justify-center rounded-md px-3 text-xs">
+        <div
+          className={cn(
+            'mx-auto flex h-6 w-full max-w-sm items-center justify-center rounded-md px-3 text-xs',
+            dark ? 'bg-neutral-950 text-neutral-400' : 'bg-background text-muted-foreground',
+          )}
+        >
           {url}
         </div>
       </div>

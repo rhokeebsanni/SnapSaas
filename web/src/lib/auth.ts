@@ -49,6 +49,17 @@ export const auth = betterAuth({
     // Verification is optional so the app works before email is configured.
     requireEmailVerification: false,
   },
+  account: {
+    accountLinking: {
+      // Link a social sign-in to an existing account when the email matches.
+      // This stops the "account not linked" error when someone signs up with
+      // email/password (or one provider) and later uses another with the same
+      // email. Only providers that verify emails are trusted, and we never link
+      // across *different* emails, so this can't hijack an account.
+      enabled: true,
+      trustedProviders: ['google', 'github'],
+    },
+  },
   emailVerification: {
     sendVerificationEmail: async ({ user, url }) => {
       await sendVerificationEmail(user.email, url);

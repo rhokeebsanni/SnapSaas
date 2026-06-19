@@ -27,7 +27,13 @@ export async function POST(request: Request) {
   }
 
   if (!isQueueConfigured()) {
-    return NextResponse.json({ error: 'Capture service is not configured yet.' }, { status: 503 });
+    return NextResponse.json(
+      {
+        error:
+          'Capturing isn’t switched on yet — the server is missing its REDIS_URL / R2 storage keys.',
+      },
+      { status: 503 },
+    );
   }
 
   const body = await request.json().catch(() => null);

@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/brand/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -17,6 +18,8 @@ const NAV = [
 ];
 
 export function SiteHeader() {
+  const { data: session } = useSession();
+  const signedIn = Boolean(session);
   const [scrolled, setScrolled] = React.useState(false);
   const [open, setOpen] = React.useState(false);
 
@@ -57,12 +60,20 @@ export function SiteHeader() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <div className="hidden items-center gap-2 sm:flex">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/sign-in">Sign in</Link>
-            </Button>
-            <Button variant="brand" size="sm" asChild>
-              <Link href="/sign-up">Get started</Link>
-            </Button>
+            {signedIn ? (
+              <Button variant="brand" size="sm" asChild>
+                <Link href="/dashboard">Go to dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/sign-in">Sign in</Link>
+                </Button>
+                <Button variant="brand" size="sm" asChild>
+                  <Link href="/sign-up">Get started</Link>
+                </Button>
+              </>
+            )}
           </div>
           <Button
             variant="ghost"
@@ -91,12 +102,26 @@ export function SiteHeader() {
               </Link>
             ))}
             <div className="mt-2 flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1" asChild>
-                <Link href="/sign-in">Sign in</Link>
-              </Button>
-              <Button variant="brand" size="sm" className="flex-1" asChild>
-                <Link href="/sign-up">Get started</Link>
-              </Button>
+              {signedIn ? (
+                <Button variant="brand" size="sm" className="flex-1" asChild>
+                  <Link href="/dashboard" onClick={() => setOpen(false)}>
+                    Go to dashboard
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" className="flex-1" asChild>
+                    <Link href="/sign-in" onClick={() => setOpen(false)}>
+                      Sign in
+                    </Link>
+                  </Button>
+                  <Button variant="brand" size="sm" className="flex-1" asChild>
+                    <Link href="/sign-up" onClick={() => setOpen(false)}>
+                      Get started
+                    </Link>
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>

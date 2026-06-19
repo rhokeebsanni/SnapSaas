@@ -3,8 +3,10 @@ import 'server-only';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
+import { eq } from 'drizzle-orm';
 
 import { db, schema } from '@/db';
+import { TRIAL_DAYS, PLANS } from '@/lib/plans';
 import { sendVerificationEmail, sendWelcomeEmail } from '@/lib/email';
 
 // Only register an OAuth provider when both halves of its credential pair are
@@ -56,6 +58,15 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (createdUser) => {
+          // Start a 30-day Pro trial: set the end date and top the new user up to
+          // the Pro monthly capture allowance for the trial period.
+          const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+          await db
+            .update(schema.user)
+            .set({ trialEndsAt, credits: PLANS.pro.limits.capturesPerMonth })
+            .where(eq(schema.user.id, createdUser.id))
+            .catch((err) => console.error('[auth] failed to start trial:', err));
+
           await sendWelcomeEmail(createdUser.email, createdUser.name);
         },
       },

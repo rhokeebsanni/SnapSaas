@@ -49,9 +49,22 @@ export default async function SettingsPage() {
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Current plan</span>
             <Badge variant={account.plan.id === 'free' ? 'secondary' : 'brand'}>
-              {account.plan.name}
+              {account.onTrial ? 'Pro (trial)' : account.plan.name}
             </Badge>
           </div>
+          {account.onTrial && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Trial ends</span>
+              <span className="font-medium">
+                {account.trialEndsAt?.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}{' '}
+                ({account.trialDaysLeft} day{account.trialDaysLeft === 1 ? '' : 's'} left)
+              </span>
+            </div>
+          )}
           {sub && (
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Status</span>

@@ -50,6 +50,56 @@ export const BACKGROUNDS: BackgroundOption[] = [
     tier: 'pro',
     css: 'radial-gradient(at 15% 20%, #f9a8d4cc, transparent 50%), radial-gradient(at 85% 30%, #c4b5fdcc, transparent 45%), radial-gradient(at 50% 95%, #a5b4fccc, transparent 55%), #fdf2f8',
   },
+
+  // --- Expanded catalog (mirrors worker/src/config/templates.ts) ----------
+
+  // Cosmic / space.
+  {
+    id: 'midnight',
+    name: 'Midnight',
+    tier: 'pro',
+    css: 'radial-gradient(at 18% 20%, #312e81dd, transparent 55%), radial-gradient(at 85% 15%, #1e3a8add, transparent 50%), radial-gradient(at 55% 95%, #4c1d95dd, transparent 55%), #05060a',
+  },
+  {
+    id: 'nebula',
+    name: 'Nebula',
+    tier: 'pro',
+    css: 'radial-gradient(at 25% 30%, #db2777dd, transparent 50%), radial-gradient(at 80% 25%, #7c3aeddd, transparent 50%), radial-gradient(at 60% 90%, #2563ebdd, transparent 55%), #0a0118',
+  },
+  {
+    id: 'cosmos',
+    name: 'Cosmos',
+    tier: 'free',
+    css: 'linear-gradient(160deg,#0f0c29,#302b63 50%,#24243e)',
+  },
+
+  // Duotone gradients.
+  { id: 'twilight', name: 'Twilight', tier: 'pro', css: 'linear-gradient(135deg,#6a11cb,#2575fc)' },
+  { id: 'flamingo', name: 'Flamingo', tier: 'pro', css: 'linear-gradient(135deg,#f857a6,#ff5858)' },
+  { id: 'lagoon', name: 'Lagoon', tier: 'pro', css: 'linear-gradient(160deg,#43cea2,#185a9d)' },
+  { id: 'peach', name: 'Peach', tier: 'pro', css: 'linear-gradient(135deg,#ffecd2,#fcb69f)' },
+  { id: 'mango', name: 'Mango', tier: 'pro', css: 'linear-gradient(135deg,#ff9a9e,#fad0c4)' },
+
+  // Mesh blends.
+  {
+    id: 'iris',
+    name: 'Iris',
+    tier: 'pro',
+    css: 'radial-gradient(at 20% 25%, #8b5cf6dd, transparent 50%), radial-gradient(at 85% 30%, #ec4899dd, transparent 45%), radial-gradient(at 50% 95%, #3b82f6dd, transparent 50%), #1e1b4b',
+  },
+  {
+    id: 'mint',
+    name: 'Mint',
+    tier: 'pro',
+    css: 'radial-gradient(at 20% 20%, #6ee7b7cc, transparent 45%), radial-gradient(at 85% 30%, #7dd3fccc, transparent 40%), radial-gradient(at 50% 95%, #a7f3d0cc, transparent 50%), #ecfdf5',
+  },
+
+  // Solids.
+  { id: 'pure-white', name: 'Pure White', tier: 'pro', css: '#ffffff' },
+  { id: 'slate', name: 'Slate', tier: 'pro', css: '#334155' },
+  { id: 'ink', name: 'Ink', tier: 'pro', css: '#0b0b0f' },
+  { id: 'sand', name: 'Sand', tier: 'pro', css: '#e7e2d9' },
+  { id: 'brand-violet', name: 'Brand Violet', tier: 'pro', css: '#6d28d9' },
 ];
 
 export function getBackground(id: string): BackgroundOption {

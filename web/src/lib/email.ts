@@ -60,7 +60,21 @@ export async function sendVerificationEmail(to: string, url: string): Promise<vo
     layout(
       'Confirm your email',
       `<p>Click below to verify your email address and secure your SnapSaas account.</p>
-       ${button(url, 'Verify email')}`,
+       ${button(url, 'Verify email')}
+       <p style="font-size:12px;color:#6b7280;margin-top:16px">If you didn’t create a SnapSaas account, you can ignore this email.</p>`,
+    ),
+  );
+}
+
+export async function sendResetPasswordEmail(to: string, url: string): Promise<void> {
+  await send(
+    to,
+    'Reset your password',
+    layout(
+      'Reset your password',
+      `<p>We received a request to reset your SnapSaas password. Click below to choose a new one. This link expires in 1 hour.</p>
+       ${button(url, 'Reset password')}
+       <p style="font-size:12px;color:#6b7280;margin-top:16px">If you didn’t request this, you can safely ignore this email — your password won’t change.</p>`,
     ),
   );
 }

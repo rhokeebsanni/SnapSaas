@@ -7,7 +7,12 @@ import { eq } from 'drizzle-orm';
 
 import { db, schema } from '@/db';
 import { TRIAL_DAYS, PLANS } from '@/lib/plans';
-import { sendVerificationEmail, sendWelcomeEmail } from '@/lib/email';
+import { sendVerificationEmail, sendWelcomeEmail, sendResetPasswordEmail } from '@/lib/email';
+
+// Email verification is required by default, but can be turned off for local dev
+// before Resend is configured (otherwise nobody could verify and thus log in).
+// Set AUTH_REQUIRE_EMAIL_VERIFICATION="false" to disable.
+const requireEmailVerification = process.env.AUTH_REQUIRE_EMAIL_VERIFICATION !== 'false';
 
 // Only register an OAuth provider when both halves of its credential pair are
 // present, so a partially-configured environment never wires up a broken button.
@@ -46,8 +51,13 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
-    // Verification is optional so the app works before email is configured.
-    requireEmailVerification: false,
+    // Gated by env so the app still works locally before Resend is configured.
+    requireEmailVerification,
+    // Forgot-password: email a one-hour reset link.
+    sendResetPassword: async ({ user, url }) => {
+      await sendResetPasswordEmail(user.email, url);
+    },
+    resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
   },
   account: {
     accountLinking: {
@@ -68,6 +78,10 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
+    // Fire the verification email automatically when a new user signs up, and
+    // sign them in once they click the link.
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       await sendVerificationEmail(user.email, url);
     },

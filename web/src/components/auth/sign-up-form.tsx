@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordField } from '@/components/auth/password-field';
+import { VerifyEmailNotice } from '@/components/auth/verify-email-notice';
 import { signUp } from '@/lib/auth-client';
 
 export function SignUpForm() {
@@ -18,6 +19,8 @@ export function SignUpForm() {
   const next = nextParam && nextParam.startsWith('/') ? nextParam : '/dashboard';
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  // Set once we've created the account but it needs email verification.
+  const [verifyEmail, setVerifyEmail] = React.useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,15 +37,25 @@ export function SignUpForm() {
     }
 
     setPending(true);
-    const { error } = await signUp.email({ name, email, password, callbackURL: next });
+    const { data, error } = await signUp.email({ name, email, password, callbackURL: next });
     setPending(false);
 
     if (error) {
       setError(error.message ?? 'Could not create your account.');
       return;
     }
+    // When email verification is required, sign-up returns no session — show the
+    // "check your inbox" state instead of bouncing off the dashboard.
+    if (!data?.token) {
+      setVerifyEmail(email);
+      return;
+    }
     router.push(next);
     router.refresh();
+  }
+
+  if (verifyEmail) {
+    return <VerifyEmailNotice email={verifyEmail} />;
   }
 
   return (

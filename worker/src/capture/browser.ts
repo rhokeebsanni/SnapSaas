@@ -11,10 +11,23 @@ async function getBrowser(): Promise<Browser> {
     const existing = await browserPromise;
     if (existing.isConnected()) return existing;
   }
-  browserPromise = chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--hide-scrollbars'],
-  });
+  browserPromise = chromium
+    .launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--hide-scrollbars'],
+    })
+    .catch((err: unknown) => {
+      browserPromise = null;
+      // Turn Playwright's wall-of-text "browser not installed" error into a
+      // short, actionable message that's safe to show in the editor.
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/Executable doesn't exist|playwright install/i.test(msg)) {
+        throw new Error(
+          'The capture browser is not installed on the worker. Run: npx playwright install chromium',
+        );
+      }
+      throw err instanceof Error ? err : new Error(msg);
+    });
   return browserPromise;
 }
 

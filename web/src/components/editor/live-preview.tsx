@@ -53,6 +53,7 @@ export function LivePreview({
   glow,
   tilt,
   windowStyle,
+  watermark,
 }: {
   url: string;
   frame: FrameId;
@@ -62,6 +63,7 @@ export function LivePreview({
   glow: boolean;
   tilt: TiltPreset;
   windowStyle: WindowStyle;
+  watermark?: boolean;
 }) {
   const bg = getBackground(background);
   // Map the worker's 0–400px padding onto a sensible preview range (0–14%).
@@ -77,11 +79,21 @@ export function LivePreview({
   return (
     <div
       className={cn(
-        'grid place-items-center rounded-xl transition-[padding] duration-300',
+        'relative grid place-items-center overflow-hidden rounded-xl transition-[padding] duration-300',
         isPhone ? 'h-full w-auto max-w-full' : 'w-full max-w-full',
       )}
       style={{ background: bg.css, padding: `${padPct}%` }}
     >
+      {/* Watermark — mirrors the worker's "Made with SnapSaas" so the preview
+          shows exactly what a free-plan export will look like. */}
+      {watermark && (
+        <span
+          className="pointer-events-none absolute bottom-2 right-2.5 z-10 select-none text-[11px] font-semibold text-white/85 sm:text-xs"
+          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.35)' }}
+        >
+          Made with SnapSaas
+        </span>
+      )}
       <div
         className={cn(
           'relative transition-transform duration-500 ease-out',

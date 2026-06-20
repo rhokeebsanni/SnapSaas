@@ -45,6 +45,13 @@ export async function assertPublicUrl(raw: string): Promise<URL> {
     throw new Error('Only http(s) URLs are allowed');
   }
 
+  // Dev-only escape hatch: allow capturing localhost / private addresses when
+  // ALLOW_LOCAL_CAPTURE is explicitly enabled. NEVER set this in production — it
+  // disables SSRF protection and lets users reach internal services.
+  if (process.env.ALLOW_LOCAL_CAPTURE === 'true') {
+    return url;
+  }
+
   const host = url.hostname.toLowerCase();
   if (
     BLOCKED_HOSTNAMES.has(host) ||

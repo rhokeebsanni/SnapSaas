@@ -122,11 +122,37 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
 
   layers.push({ input: device.buffer, top: pad, left: pad });
 
-  if (settings.watermark) {
-    layers.push({ input: watermarkSvg(canvasW, canvasH, scale), top: 0, left: 0 });
+  // Compose the framed device on its background at the derived canvas size.
+  let composed = await sharp(background).composite(layers).png().toBuffer();
+  let outW = canvasW;
+  let outH = canvasH;
+
+  // Optional exact output dimensions: fit the composition into the requested
+  // canvas without distortion, letter-boxing with the background's base color.
+  if (settings.outputWidth || settings.outputHeight) {
+    outW = Math.round((settings.outputWidth ?? settings.outputHeight!) * scale);
+    outH = Math.round((settings.outputHeight ?? settings.outputWidth!) * scale);
+    composed = await sharp(composed)
+      .resize(outW, outH, {
+        fit: 'contain',
+        background:
+          bg.type === 'solid'
+            ? bg.color
+            : bg.type === 'mesh'
+              ? bg.base
+              : (bg.stops[0]?.[1] ?? '#000000'),
+      })
+      .png()
+      .toBuffer();
   }
 
-  const pipeline = sharp(background).composite(layers);
+  // Watermark goes on after any resize so it stays crisp and corner-anchored.
+  let pipeline = sharp(composed);
+  if (settings.watermark) {
+    pipeline = sharp(composed).composite([
+      { input: watermarkSvg(outW, outH, scale), top: 0, left: 0 },
+    ]);
+  }
 
   let buffer: Buffer;
   switch (settings.format) {
@@ -145,7 +171,7 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
       break;
   }
 
-  return { format: settings.format, width: canvasW, height: canvasH, buffer };
+  return { format: settings.format, width: outW, height: outH, buffer };
 }
 
 function hostFromUrl(raw: string): string {

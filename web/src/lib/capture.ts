@@ -25,6 +25,14 @@ export const captureSettingsSchema = z.object({
   glow: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
   windowStyle: z.enum(['light', 'dark']).default('light'),
+  // Pixels to scroll down before capturing (viewport mode only), so users can
+  // grab a section further down the page instead of just the top.
+  scrollY: z.number().int().min(0).max(20000).default(0),
+  // Optional exact output dimensions (logical px). When set, the final
+  // composition is fit into this canvas (no distortion); when omitted the size
+  // is derived from the frame + padding.
+  outputWidth: z.number().int().min(200).max(4000).optional(),
+  outputHeight: z.number().int().min(200).max(4000).optional(),
   viewportWidth: z.number().int().min(320).max(2560).optional(),
   viewportHeight: z.number().int().min(320).max(4000).optional(),
 });

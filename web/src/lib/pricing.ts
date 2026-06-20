@@ -48,13 +48,14 @@ export const REGIONS: Record<Region, RegionMeta> = {
     rate: 1600,
     charged: false,
     // Purchasing-power-adjusted naira prices (≈ a local-friendly tier, not a
-    // raw FX conversion). Keyed by the plan's base USD price.
+    // raw FX conversion) so it's affordable for Nigerian devs. Keyed by the
+    // plan's base USD price.
     priceMap: {
       0: 0,
-      12: 7500, // Pro monthly
-      108: 75000, // Pro yearly
-      29: 18000, // Team monthly
-      290: 180000, // Team yearly
+      12: 3000, // Pro monthly
+      108: 30000, // Pro yearly (~10 months, matching the 20% annual discount)
+      29: 7500, // Team monthly
+      290: 75000, // Team yearly
     },
   },
 };

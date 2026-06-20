@@ -7,6 +7,8 @@ import { ImageOff, LoaderCircle, RotateCcw, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from 'sonner';
 import type { CaptureSummary } from '@/lib/projects';
 
 const STATUS_LABEL: Record<string, { label: string; variant: 'secondary' | 'brand' | 'outline' }> =
@@ -23,13 +25,14 @@ export function CaptureCard({ capture }: { capture: CaptureSummary }) {
   const status = STATUS_LABEL[capture.status] ?? STATUS_LABEL.queued;
 
   async function onDelete() {
-    if (!confirm('Delete this capture? This cannot be undone.')) return;
     setDeleting(true);
     const res = await fetch(`/api/projects/${capture.projectId}`, { method: 'DELETE' });
     if (res.ok) {
+      toast.success('Capture deleted.');
       router.refresh();
     } else {
       setDeleting(false);
+      toast.error('Could not delete that capture.');
     }
   }
 
@@ -75,20 +78,27 @@ export function CaptureCard({ capture }: { capture: CaptureSummary }) {
               <RotateCcw className="size-4" />
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onDelete}
-            disabled={deleting}
-            title="Delete"
-            className="text-muted-foreground hover:text-destructive"
+          <ConfirmDialog
+            title="Delete this capture?"
+            description="This permanently removes the capture and its generated images. This can’t be undone."
+            confirmLabel="Delete"
+            destructive
+            onConfirm={onDelete}
           >
-            {deleting ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <Trash2 className="size-4" />
-            )}
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={deleting}
+              title="Delete"
+              className="text-muted-foreground hover:text-destructive"
+            >
+              {deleting ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <Trash2 className="size-4" />
+              )}
+            </Button>
+          </ConfirmDialog>
         </div>
       </div>
     </div>

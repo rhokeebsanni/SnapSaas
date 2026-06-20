@@ -91,6 +91,17 @@ export async function captureScreenshot(settings: CaptureSettings): Promise<Buff
     // Give late-loading fonts/images a brief moment.
     await page.waitForTimeout(500);
 
+    // Viewport mode can start lower on the page so users can frame a section
+    // further down (full-page mode already captures everything).
+    if (settings.mode !== 'full' && settings.scrollY && settings.scrollY > 0) {
+      // Runs in the page context; cast since the worker's TS lib has no DOM.
+      await page.evaluate(
+        (y) => (globalThis as unknown as { scrollTo(x: number, y: number): void }).scrollTo(0, y),
+        settings.scrollY,
+      );
+      await page.waitForTimeout(300); // let lazy content/parallax settle
+    }
+
     return await page.screenshot({
       fullPage: settings.mode === 'full',
       type: 'png',

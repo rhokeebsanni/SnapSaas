@@ -35,6 +35,7 @@ export default async function EditorPage(props: PageProps<'/dashboard/editor'>) 
       <Editor
         maxScale={account.plan.limits.maxScale}
         allTemplates={account.plan.limits.allTemplates}
+        watermark={account.plan.limits.watermark}
         initialUrl={initialUrl}
       />
     </div>

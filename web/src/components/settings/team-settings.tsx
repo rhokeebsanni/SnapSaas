@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Copy, LoaderCircle, Mail, Trash2, UserPlus } from 'lucide-react';
 
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -92,7 +94,6 @@ export function TeamSettings({
   }
 
   async function remove(memberId: string) {
-    if (!confirm('Remove this member from the team?')) return;
     const { ok, data } = await teamAction({ action: 'remove', memberId });
     if (ok) {
       toast.success('Member removed.');
@@ -130,15 +131,22 @@ export function TeamSettings({
               <Badge variant="brand">Owner</Badge>
             ) : (
               isOwner && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive"
-                  onClick={() => remove(m.id)}
-                  title="Remove"
+                <ConfirmDialog
+                  title="Remove this member?"
+                  description={`${m.name || m.email} will lose access to the team and its Pro features.`}
+                  confirmLabel="Remove"
+                  destructive
+                  onConfirm={() => remove(m.id)}
                 >
-                  <Trash2 className="size-4" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive"
+                    title="Remove"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </ConfirmDialog>
               )
             )}
           </li>

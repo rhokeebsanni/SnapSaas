@@ -31,6 +31,12 @@ export function assertSafeUrl(raw: string): URL {
     throw new Error('Only http(s) URLs are allowed');
   }
 
+  // Dev-only escape hatch — must match the web app's ALLOW_LOCAL_CAPTURE.
+  // Never enable in production (disables SSRF protection).
+  if (process.env.ALLOW_LOCAL_CAPTURE === 'true') {
+    return url;
+  }
+
   const host = url.hostname.toLowerCase();
   if (BLOCKED_HOSTNAMES.has(host) || host.endsWith('.local') || host.endsWith('.internal')) {
     throw new Error('That host is not allowed');

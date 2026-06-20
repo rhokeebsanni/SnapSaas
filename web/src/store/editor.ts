@@ -34,6 +34,9 @@ interface EditorState {
   glow: boolean;
   tilt: TiltPreset;
   windowStyle: WindowStyle;
+  scrollY: number;
+  outputWidth: number | null;
+  outputHeight: number | null;
 
   status: RunStatus;
   jobId: string | null;
@@ -51,6 +54,9 @@ interface EditorState {
   setGlow: (glow: boolean) => void;
   setTilt: (tilt: TiltPreset) => void;
   setWindowStyle: (windowStyle: WindowStyle) => void;
+  setScrollY: (scrollY: number) => void;
+  setOutputWidth: (outputWidth: number | null) => void;
+  setOutputHeight: (outputHeight: number | null) => void;
 
   generate: () => Promise<void>;
   reset: () => void;
@@ -73,6 +79,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   glow: false,
   tilt: 'none',
   windowStyle: 'light',
+  scrollY: 0,
+  outputWidth: null,
+  outputHeight: null,
 
   status: 'idle',
   jobId: null,
@@ -90,6 +99,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setGlow: (glow) => set({ glow }),
   setTilt: (tilt) => set({ tilt }),
   setWindowStyle: (windowStyle) => set({ windowStyle }),
+  setScrollY: (scrollY) => set({ scrollY }),
+  setOutputWidth: (outputWidth) => set({ outputWidth }),
+  setOutputHeight: (outputHeight) => set({ outputHeight }),
 
   reset: () => set({ status: 'idle', jobId: null, assets: [], error: null }),
 
@@ -106,6 +118,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       glow,
       tilt,
       windowStyle,
+      scrollY,
+      outputWidth,
+      outputHeight,
       status,
     } = get();
     if (status === 'submitting' || status === 'queued' || status === 'processing') return;
@@ -137,6 +152,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           glow,
           tilt,
           windowStyle,
+          scrollY,
+          ...(outputWidth ? { outputWidth } : {}),
+          ...(outputHeight ? { outputHeight } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));

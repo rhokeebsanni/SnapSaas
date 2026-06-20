@@ -64,13 +64,21 @@ const SCALE_HINT: Record<OutputScale, string> = {
   3: 'Ultra (3×) — maximum detail for print and large displays. Bigger files.',
 };
 
+/** Keep custom output dimensions within the worker's accepted range. */
+function clampSize(v: number): number {
+  if (!Number.isFinite(v)) return 200;
+  return Math.min(4000, Math.max(200, Math.round(v)));
+}
+
 export function Editor({
   maxScale,
   allTemplates,
+  watermark,
   initialUrl,
 }: {
   maxScale: OutputScale;
   allTemplates: boolean;
+  watermark: boolean;
   initialUrl?: string;
 }) {
   const s = useEditorStore();
@@ -106,9 +114,22 @@ export function Editor({
   }, [runGenerate]);
 
   const busy = s.status === 'submitting' || s.status === 'queued' || s.status === 'processing';
+  const isDone = s.status === 'done';
+  const customSize = s.outputWidth !== null || s.outputHeight !== null;
   const shownAsset = s.assets.find((a) => a.format === s.format) ?? s.assets[0] ?? null;
   // The browser frame is the only one with chrome styling.
   const showWindowStyle = s.frame === 'browser';
+
+  // After a result is shown, editing a *visual* setting drops back to the live
+  // preview so the change is visible immediately (and invites a re-generate).
+  // Wraps a setter; `format` is intentionally NOT wrapped — it just switches
+  // which already-rendered asset is shown.
+  function onEdit<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      if (useEditorStore.getState().status === 'done') s.reset();
+      setter(v);
+    };
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
@@ -155,7 +176,7 @@ export function Editor({
         <Control label="Frame">
           <Segmented
             value={s.frame}
-            onChange={s.setFrame}
+            onChange={onEdit(s.setFrame)}
             options={FRAMES.map((f) => ({ value: f.id, label: f.name }))}
           />
         </Control>
@@ -171,7 +192,7 @@ export function Editor({
                   type="button"
                   title={locked ? `${b.name} (Pro)` : b.name}
                   disabled={locked}
-                  onClick={() => s.setBackground(b.id)}
+                  onClick={() => onEdit(s.setBackground)(b.id)}
                   style={{ background: b.css }}
                   className={cn(
                     'relative aspect-square rounded-lg border transition-all',
@@ -193,7 +214,7 @@ export function Editor({
         <Control label="Page">
           <Segmented
             value={s.mode}
-            onChange={s.setMode}
+            onChange={onEdit(s.setMode)}
             options={[
               { value: 'viewport', label: 'Viewport' },
               { value: 'full', label: 'Full page' },
@@ -201,10 +222,30 @@ export function Editor({
           />
         </Control>
 
+        {s.mode === 'viewport' && (
+          <Control
+            label="Capture from"
+            hint="Scroll down this many pixels before capturing — to frame a section further down the page."
+          >
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                max={20000}
+                step={100}
+                value={s.scrollY}
+                onChange={(e) => onEdit(s.setScrollY)(Math.max(0, Number(e.target.value) || 0))}
+                className="w-28"
+              />
+              <span className="text-muted-foreground text-sm">px from top</span>
+            </div>
+          </Control>
+        )}
+
         <Control label="Image quality" hint={SCALE_HINT[s.scale]}>
           <Segmented
             value={s.scale}
-            onChange={(v) => s.setScale(v)}
+            onChange={onEdit(s.setScale)}
             options={([1, 2, 3] as OutputScale[]).map((n) => ({
               value: n,
               label: SCALE_LABEL[n],
@@ -223,7 +264,7 @@ export function Editor({
           {/* Quick presets… */}
           <Segmented
             value={PADDING_PRESETS.some((p) => p.value === s.padding) ? s.padding : -1}
-            onChange={(v) => s.setPadding(v as number)}
+            onChange={(v) => onEdit(s.setPadding)(v as number)}
             options={[
               ...PADDING_PRESETS.map((p) => ({ value: p.value as number, label: p.label })),
               { value: -1, label: 'Custom', locked: true },
@@ -232,7 +273,7 @@ export function Editor({
           {/* …and a slider for anything in between. */}
           <Slider
             value={[s.padding]}
-            onValueChange={(values: number[]) => s.setPadding(values[0])}
+            onValueChange={(values: number[]) => onEdit(s.setPadding)(values[0])}
             min={0}
             max={400}
             step={4}
@@ -242,16 +283,20 @@ export function Editor({
         </div>
 
         <Control label="Shadow">
-          <Segmented value={s.shadow} onChange={s.setShadow} options={SHADOW_OPTIONS} />
+          <Segmented value={s.shadow} onChange={onEdit(s.setShadow)} options={SHADOW_OPTIONS} />
         </Control>
 
         <Control label="3D tilt">
-          <Segmented value={s.tilt} onChange={s.setTilt} options={TILT_OPTIONS} />
+          <Segmented value={s.tilt} onChange={onEdit(s.setTilt)} options={TILT_OPTIONS} />
         </Control>
 
         {showWindowStyle && (
           <Control label="Window">
-            <Segmented value={s.windowStyle} onChange={s.setWindowStyle} options={WINDOW_OPTIONS} />
+            <Segmented
+              value={s.windowStyle}
+              onChange={onEdit(s.setWindowStyle)}
+              options={WINDOW_OPTIONS}
+            />
           </Control>
         )}
 
@@ -260,7 +305,7 @@ export function Editor({
             type="button"
             role="switch"
             aria-checked={s.glow}
-            onClick={() => s.setGlow(!s.glow)}
+            onClick={() => onEdit(s.setGlow)(!s.glow)}
             className={cn(
               'relative inline-flex h-7 w-12 items-center rounded-full border transition-colors',
               s.glow ? 'bg-brand border-brand' : 'bg-muted/40',
@@ -275,6 +320,57 @@ export function Editor({
           </button>
         </Control>
 
+        <Control
+          label="Output size"
+          hint="By default the size comes from the frame + padding. Turn on to set exact dimensions — the composition is fit inside without stretching."
+        >
+          <div className="space-y-2">
+            <Segmented
+              value={customSize ? 'custom' : 'auto'}
+              onChange={(v) => {
+                if (v === 'auto') {
+                  onEdit(s.setOutputWidth)(null);
+                  onEdit(s.setOutputHeight)(null);
+                } else {
+                  // Seed with sensible defaults when switching to custom.
+                  onEdit(s.setOutputWidth)(s.outputWidth ?? 1280);
+                  onEdit(s.setOutputHeight)(s.outputHeight ?? 800);
+                }
+              }}
+              options={[
+                { value: 'auto', label: 'Auto' },
+                { value: 'custom', label: 'Custom' },
+              ]}
+            />
+            {customSize && (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={200}
+                  max={4000}
+                  step={10}
+                  aria-label="Output width"
+                  value={s.outputWidth ?? 1280}
+                  onChange={(e) => onEdit(s.setOutputWidth)(clampSize(Number(e.target.value)))}
+                  className="w-24"
+                />
+                <span className="text-muted-foreground text-sm">×</span>
+                <Input
+                  type="number"
+                  min={200}
+                  max={4000}
+                  step={10}
+                  aria-label="Output height"
+                  value={s.outputHeight ?? 800}
+                  onChange={(e) => onEdit(s.setOutputHeight)(clampSize(Number(e.target.value)))}
+                  className="w-24"
+                />
+                <span className="text-muted-foreground text-sm">px</span>
+              </div>
+            )}
+          </div>
+        </Control>
+
         <Control label="Download format">
           <Segmented value={s.format} onChange={s.setFormat} options={FORMAT_OPTIONS} />
         </Control>
@@ -282,7 +378,15 @@ export function Editor({
 
       {/* Preview — pinned in view so changes are visible without scrolling. */}
       <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <div className="bg-muted/30 relative grid min-h-[420px] place-items-center overflow-hidden rounded-2xl border p-6 lg:h-[calc(100dvh-7rem)]">
+        <div
+          className={cn(
+            'bg-muted/30 relative grid min-h-[420px] place-items-center overflow-hidden rounded-2xl border p-6',
+            // While editing, fill the viewport so the live preview is big. Once a
+            // result is shown, cap height instead so the download bar below stays
+            // on screen without scrolling.
+            isDone ? 'lg:max-h-[calc(100dvh-12rem)]' : 'lg:h-[calc(100dvh-7rem)]',
+          )}
+        >
           {shownAsset && s.status === 'done' ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -309,6 +413,7 @@ export function Editor({
                 glow={s.glow}
                 tilt={s.tilt}
                 windowStyle={s.windowStyle}
+                watermark={watermark}
               />
             </div>
           )}

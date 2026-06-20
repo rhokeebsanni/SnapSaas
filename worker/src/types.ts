@@ -31,6 +31,12 @@ export interface CaptureSettings {
   tilt?: TiltPreset;
   /** Browser chrome styling (default 'light'). Only affects the browser frame. */
   windowStyle?: WindowStyle;
+  /** Pixels to scroll down before capturing (viewport mode only; default 0). */
+  scrollY?: number;
+  /** Exact output canvas size (logical px). When set, the composition is fit
+      into these dimensions without distortion; otherwise size is derived. */
+  outputWidth?: number;
+  outputHeight?: number;
   /** Logical viewport width in CSS px (default 1280). */
   viewportWidth?: number;
   /** Logical viewport height in CSS px (default 800). */

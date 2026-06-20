@@ -5,6 +5,7 @@ import * as React from 'react';
 import { DeviceFrame, MockSite } from '@/components/device-frame';
 import { getBackground, glowColorForCss } from '@/lib/templates';
 import type { ShadowPreset, TiltPreset, WindowStyle, FrameId } from '@/lib/capture';
+import { cn } from '@/lib/utils';
 
 /**
  * A faithful, live preview of the export. Every editor control maps to a real
@@ -67,13 +68,24 @@ export function LivePreview({
   const padPct = Math.min(14, (padding / 400) * 14 + 1.5);
   const glowColor = glowColorForCss(background);
 
+  // The iPhone frame is tall and narrow (aspect 9/19). Sizing it by width alone
+  // makes it overflow the (height-capped) preview box and get clipped, so cap
+  // the device's *width* tightly for the phone — its height then fits.
+  const isPhone = frame === 'iphone';
+
   return (
     <div
       className="grid w-full place-items-center overflow-hidden rounded-xl transition-[padding] duration-300"
       style={{ background: bg.css, padding: `${padPct}%` }}
     >
       <div
-        className="relative w-full max-w-xl transition-transform duration-500 ease-out"
+        className={cn(
+          'relative w-full transition-transform duration-500 ease-out',
+          // The phone is a tall 9/19 frame; sizing by width alone overflows the
+          // height-capped preview box and clips. A tight width keeps it short
+          // enough (~210px → ~443px tall) to fit comfortably.
+          isPhone ? 'mx-auto max-w-[210px]' : 'max-w-xl',
+        )}
         style={{ transform: TILT_TRANSFORM[tilt], transformStyle: 'preserve-3d' }}
       >
         {/* Colored glow behind the device. */}

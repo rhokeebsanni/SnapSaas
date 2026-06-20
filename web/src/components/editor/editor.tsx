@@ -282,7 +282,7 @@ export function Editor({
 
       {/* Preview — pinned in view so changes are visible without scrolling. */}
       <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-        <div className="bg-muted/30 relative grid max-h-[calc(100dvh-7rem)] min-h-[420px] place-items-center overflow-hidden rounded-2xl border p-6">
+        <div className="bg-muted/30 relative grid max-h-[calc(100dvh-7rem)] min-h-[420px] place-items-center overflow-auto rounded-2xl border p-6">
           {shownAsset && s.status === 'done' ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

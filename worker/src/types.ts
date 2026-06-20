@@ -62,8 +62,8 @@ export interface RenderOutput {
 export const DEFAULT_VIEWPORT_WIDTH = 1280;
 export const DEFAULT_VIEWPORT_HEIGHT = 800;
 
-/** Must match the web app's CAPTURE_QUEUE_NAME. */
-export const CAPTURE_QUEUE_NAME = 'snapsaas:capture';
+/** Must match the web app's CAPTURE_QUEUE_NAME. (No ':' — BullMQ forbids it.) */
+export const CAPTURE_QUEUE_NAME = 'snapsaas-capture';
 
 export interface CaptureJobData {
   jobId: string;

@@ -39,7 +39,7 @@ export interface CaptureSettings extends CaptureSettingsInput {
 
 export type JobStatus = 'queued' | 'processing' | 'done' | 'failed';
 
-export const CAPTURE_QUEUE_NAME = 'snapsaas:capture';
+export const CAPTURE_QUEUE_NAME = 'snapsaas-capture';
 
 /** Payload enqueued onto BullMQ. The worker re-reads settings from the DB row. */
 export interface CaptureJobData {

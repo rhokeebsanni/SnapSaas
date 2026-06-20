@@ -100,6 +100,48 @@ export const BACKGROUNDS: BackgroundOption[] = [
   { id: 'ink', name: 'Ink', tier: 'pro', css: '#0b0b0f' },
   { id: 'sand', name: 'Sand', tier: 'pro', css: '#e7e2d9' },
   { id: 'brand-violet', name: 'Brand Violet', tier: 'pro', css: '#6d28d9' },
+
+  // --- Pass A: more variety (mirrors worker) ---
+  {
+    id: 'mystic',
+    name: 'Mystic',
+    tier: 'pro',
+    css: 'radial-gradient(at 20% 25%, #6d28d9dd, transparent 55%), radial-gradient(at 82% 30%, #0ea5e9dd, transparent 50%), radial-gradient(at 50% 92%, #db2777dd, transparent 55%), #0c0a1d',
+  },
+  {
+    id: 'galaxy',
+    name: 'Galaxy',
+    tier: 'pro',
+    css: 'radial-gradient(at 30% 20%, #4338cadd, transparent 50%), radial-gradient(at 75% 35%, #9333eadd, transparent 50%), radial-gradient(at 50% 85%, #0891b2dd, transparent 55%), #03040f',
+  },
+  {
+    id: 'ember',
+    name: 'Ember',
+    tier: 'pro',
+    css: 'radial-gradient(at 25% 30%, #ea580cdd, transparent 50%), radial-gradient(at 80% 25%, #dc2626dd, transparent 50%), radial-gradient(at 55% 90%, #f59e0bdd, transparent 55%), #1a0a04',
+  },
+  {
+    id: 'emerald-haze',
+    name: 'Emerald Haze',
+    tier: 'pro',
+    css: 'radial-gradient(at 22% 28%, #059669dd, transparent 50%), radial-gradient(at 82% 30%, #10b981dd, transparent 50%), radial-gradient(at 50% 90%, #0d9488dd, transparent 55%), #04140e',
+  },
+  { id: 'grape', name: 'Grape', tier: 'pro', css: 'linear-gradient(135deg,#41295a,#2f0743)' },
+  { id: 'citrus', name: 'Citrus', tier: 'free', css: 'linear-gradient(120deg,#fdc830,#f37335)' },
+  { id: 'sky', name: 'Sky', tier: 'free', css: 'linear-gradient(160deg,#2980b9,#6dd5fa)' },
+  {
+    id: 'rose-gold',
+    name: 'Rose Gold',
+    tier: 'pro',
+    css: 'linear-gradient(135deg,#b76e79,#eacda3)',
+  },
+  { id: 'steel', name: 'Steel', tier: 'free', css: 'linear-gradient(145deg,#bdc3c7,#2c3e50)' },
+  {
+    id: 'mint-fresh',
+    name: 'Mint Fresh',
+    tier: 'pro',
+    css: 'linear-gradient(135deg,#00b09b,#96c93d)',
+  },
 ];
 
 export function getBackground(id: string): BackgroundOption {

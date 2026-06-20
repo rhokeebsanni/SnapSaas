@@ -230,6 +230,114 @@ export const BACKGROUNDS: BackgroundPreset[] = [
   { id: 'ink', name: 'Ink', type: 'solid', color: '#0b0b0f' },
   { id: 'sand', name: 'Sand', type: 'solid', color: '#e7e2d9' },
   { id: 'brand-violet', name: 'Brand Violet', type: 'solid', color: '#6d28d9' },
+
+  // — Pass A: more variety —
+  // Cosmic / mystic mesh backdrops.
+  {
+    id: 'mystic',
+    name: 'Mystic',
+    type: 'mesh',
+    base: '#0c0a1d',
+    blobs: [
+      { cx: 0.2, cy: 0.25, r: 0.55, color: '#6d28d9' },
+      { cx: 0.82, cy: 0.3, r: 0.45, color: '#0ea5e9' },
+      { cx: 0.5, cy: 0.92, r: 0.5, color: '#db2777' },
+    ],
+  },
+  {
+    id: 'galaxy',
+    name: 'Galaxy',
+    type: 'mesh',
+    base: '#03040f',
+    blobs: [
+      { cx: 0.3, cy: 0.2, r: 0.45, color: '#4338ca' },
+      { cx: 0.75, cy: 0.35, r: 0.4, color: '#9333ea' },
+      { cx: 0.5, cy: 0.85, r: 0.5, color: '#0891b2' },
+    ],
+  },
+  {
+    id: 'ember',
+    name: 'Ember',
+    type: 'mesh',
+    base: '#1a0a04',
+    blobs: [
+      { cx: 0.25, cy: 0.3, r: 0.5, color: '#ea580c' },
+      { cx: 0.8, cy: 0.25, r: 0.42, color: '#dc2626' },
+      { cx: 0.55, cy: 0.9, r: 0.5, color: '#f59e0b' },
+    ],
+  },
+  {
+    id: 'emerald-haze',
+    name: 'Emerald Haze',
+    type: 'mesh',
+    base: '#04140e',
+    blobs: [
+      { cx: 0.22, cy: 0.28, r: 0.5, color: '#059669' },
+      { cx: 0.82, cy: 0.3, r: 0.42, color: '#10b981' },
+      { cx: 0.5, cy: 0.9, r: 0.5, color: '#0d9488' },
+    ],
+  },
+  // Vivid duotone gradients.
+  {
+    id: 'grape',
+    name: 'Grape',
+    type: 'gradient',
+    angle: 135,
+    stops: [
+      [0, '#41295a'],
+      [1, '#2f0743'],
+    ],
+  },
+  {
+    id: 'citrus',
+    name: 'Citrus',
+    type: 'gradient',
+    angle: 120,
+    stops: [
+      [0, '#fdc830'],
+      [1, '#f37335'],
+    ],
+  },
+  {
+    id: 'sky',
+    name: 'Sky',
+    type: 'gradient',
+    angle: 160,
+    stops: [
+      [0, '#2980b9'],
+      [1, '#6dd5fa'],
+    ],
+  },
+  {
+    id: 'rose-gold',
+    name: 'Rose Gold',
+    type: 'gradient',
+    angle: 135,
+    stops: [
+      [0, '#b76e79'],
+      [1, '#eacda3'],
+    ],
+  },
+  {
+    id: 'steel',
+    name: 'Steel',
+    type: 'gradient',
+    angle: 145,
+    stops: [
+      [0, '#bdc3c7'],
+      [1, '#2c3e50'],
+    ],
+  },
+  {
+    id: 'mint-fresh',
+    name: 'Mint Fresh',
+    type: 'gradient',
+    angle: 135,
+    stops: [
+      [0, '#00b09b'],
+      [1, '#96c93d'],
+    ],
+  },
 ];
 
 export function getBackground(id: string): BackgroundPreset {

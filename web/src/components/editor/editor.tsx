@@ -4,7 +4,15 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { track } from '@vercel/analytics';
-import { Download, ImageOff, LoaderCircle, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
+import {
+  ChevronDown,
+  Download,
+  ImageOff,
+  LoaderCircle,
+  RotateCcw,
+  Sparkles,
+  Wand2,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { LivePreview } from '@/components/editor/live-preview';
 import { PreflightStatus } from '@/components/editor/preflight-status';
+import { TemplateGallery } from '@/components/editor/template-gallery';
 import { Segmented } from '@/components/editor/segmented';
 import { ThumbPicker } from '@/components/editor/thumb-picker';
 import { FrameThumb, ShadowThumb, TiltThumb, WindowThumb } from '@/components/editor/thumbs';
@@ -118,6 +127,10 @@ export function Editor({
   const busy = s.status === 'submitting' || s.status === 'queued' || s.status === 'processing';
   const isDone = s.status === 'done';
   const customSize = s.outputWidth !== null || s.outputHeight !== null;
+  // Show a first batch of backgrounds, then a "show more" — keeps the panel short.
+  const [showAllBg, setShowAllBg] = React.useState(false);
+  const BG_COLLAPSED = 8;
+  const shownBackgrounds = showAllBg ? BACKGROUNDS : BACKGROUNDS.slice(0, BG_COLLAPSED);
   const shownAsset = s.assets.find((a) => a.format === s.format) ?? s.assets[0] ?? null;
   // The browser frame is the only one with chrome styling.
   const showWindowStyle = s.frame === 'browser';
@@ -175,6 +188,10 @@ export function Editor({
           </p>
         </form>
 
+        <Control label="Templates" hint="One-click looks — a great starting point.">
+          <TemplateGallery allTemplates={allTemplates} columns={3} collapsedCount={6} />
+        </Control>
+
         <Control label="Frame">
           <ThumbPicker
             value={s.frame}
@@ -190,7 +207,7 @@ export function Editor({
 
         <Control label="Background" hint={BACKGROUNDS.find((b) => b.id === s.background)?.name}>
           <div className="grid grid-cols-4 gap-2">
-            {BACKGROUNDS.map((b) => {
+            {shownBackgrounds.map((b) => {
               const locked = b.tier === 'pro' && !allTemplates;
               const active = b.id === s.background;
               return (
@@ -216,6 +233,18 @@ export function Editor({
               );
             })}
           </div>
+          {BACKGROUNDS.length > BG_COLLAPSED && (
+            <button
+              type="button"
+              onClick={() => setShowAllBg((v) => !v)}
+              className="text-muted-foreground hover:text-foreground mt-2 flex w-full items-center justify-center gap-1 text-xs font-medium"
+            >
+              {showAllBg ? 'Show fewer' : `Show ${BACKGROUNDS.length - BG_COLLAPSED} more`}
+              <ChevronDown
+                className={cn('size-3.5 transition-transform', showAllBg && 'rotate-180')}
+              />
+            </button>
+          )}
         </Control>
 
         <Control label="Page">

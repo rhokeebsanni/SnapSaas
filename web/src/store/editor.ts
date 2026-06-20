@@ -57,6 +57,8 @@ interface EditorState {
   setScrollY: (scrollY: number) => void;
   setOutputWidth: (outputWidth: number | null) => void;
   setOutputHeight: (outputHeight: number | null) => void;
+  /** Apply a bundle of style settings at once (from a one-click template). */
+  applyTemplate: (settings: Partial<EditorState>) => void;
 
   generate: () => Promise<void>;
   reset: () => void;
@@ -102,6 +104,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setScrollY: (scrollY) => set({ scrollY }),
   setOutputWidth: (outputWidth) => set({ outputWidth }),
   setOutputHeight: (outputHeight) => set({ outputHeight }),
+  applyTemplate: (settings) =>
+    // Applying a template changes the look, so drop any shown result back to the
+    // live preview.
+    set({ ...settings, status: 'idle', jobId: null, assets: [], error: null }),
 
   reset: () => set({ status: 'idle', jobId: null, assets: [], error: null }),
 

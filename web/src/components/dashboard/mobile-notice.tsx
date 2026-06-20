@@ -27,9 +27,9 @@ export function MobileNotice() {
     <div className="bg-muted/40 relative mb-4 flex items-start gap-3 rounded-xl border p-3 text-sm lg:hidden">
       <Monitor className="text-brand mt-0.5 size-4 shrink-0" />
       <p className="text-muted-foreground pr-6">
-        The editor is best on a <span className="text-foreground font-medium">larger screen</span> —
-        widen this window (or use a desktop) for room to see the live preview alongside the
-        controls.
+        You can pick a <span className="text-foreground font-medium">template</span> and generate
+        right here. For the full live preview with every control side-by-side, the editor shines on
+        a <span className="text-foreground font-medium">larger screen</span>.
       </p>
       <button
         type="button"

@@ -68,23 +68,27 @@ export function LivePreview({
   const padPct = Math.min(14, (padding / 400) * 14 + 1.5);
   const glowColor = glowColorForCss(background);
 
-  // Each frame locks its own aspect ratio. We let the device size by HEIGHT
-  // (max-h-full) so the whole preview scales to fit the box on any screen — the
-  // tall iPhone shrinks, wide browser/macbook frames grow — never clipped.
-  // Caps stop a frame from getting comically large on huge screens.
+  // Wide frames (browser/macbook) size by width — the box grows to the column
+  // width and looks great. The iPhone is tall, so instead we bind the whole
+  // composition (device + its padding) by HEIGHT and let width follow: it zooms
+  // out until the entire padded frame fits, and the padding stays proportional.
   const isPhone = frame === 'iphone';
 
   return (
     <div
-      className="grid max-h-full w-fit max-w-full place-items-center rounded-xl transition-[padding] duration-300"
+      className={cn(
+        'grid place-items-center rounded-xl transition-[padding] duration-300',
+        isPhone ? 'h-full w-auto max-w-full' : 'w-full max-w-full',
+      )}
       style={{ background: bg.css, padding: `${padPct}%` }}
     >
       <div
         className={cn(
-          'relative max-h-full transition-transform duration-500 ease-out',
-          // Phone: a tall 9/19 frame — bound by height, narrow width cap.
-          // Wide frames: bound by width, full available width.
-          isPhone ? 'h-full w-auto max-w-[300px]' : 'w-full max-w-xl',
+          'relative transition-transform duration-500 ease-out',
+          // Phone: the device fills the box's remaining height (padding already
+          // took its share), so adding padding shrinks the phone to keep the
+          // whole composition in view. Wide frames stay width-bound.
+          isPhone ? 'h-full w-auto' : 'w-full max-w-xl',
         )}
         style={{ transform: TILT_TRANSFORM[tilt], transformStyle: 'preserve-3d' }}
       >
@@ -102,8 +106,6 @@ export function LivePreview({
           windowStyle={windowStyle}
           className={cn(
             'transition-shadow duration-300',
-            // Phone is driven by height so it scales to fit the box; wide frames
-            // by width.
             isPhone ? 'h-full w-auto max-w-none' : 'w-full',
           )}
           style={{ boxShadow: SHADOW_CSS[shadow] }}

@@ -58,6 +58,13 @@ export const auth = betterAuth({
       // across *different* emails, so this can't hijack an account.
       enabled: true,
       trustedProviders: ['google', 'github'],
+      // We don't verify local email/password accounts (requireEmailVerification
+      // is off), so their emailVerified stays false. Without this, Better Auth
+      // refuses to link a (trusted) social login onto that unverified local
+      // account and throws `account_not_linked`. The social provider already
+      // verifies the email on its side, and linking is gated on an exact email
+      // match, so allowing it here is safe.
+      requireLocalEmailVerified: false,
     },
   },
   emailVerification: {

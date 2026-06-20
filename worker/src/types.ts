@@ -31,6 +31,10 @@ export interface CaptureSettings {
   tilt?: TiltPreset;
   /** Browser chrome styling (default 'light'). Only affects the browser frame. */
   windowStyle?: WindowStyle;
+  /** Border drawn around the framed device (default 'none'). */
+  border?: 'none' | 'light' | 'dark';
+  /** Border thickness in logical px (default 4). */
+  borderWidth?: number;
   /** User-built gradient, used when `background` is "custom". */
   customGradient?: { colors: string[]; angle: number };
   /** Pixels to scroll down before capturing (viewport mode only; default 0). */

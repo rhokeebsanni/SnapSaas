@@ -53,6 +53,8 @@ export function LivePreview({
   glow,
   tilt,
   windowStyle,
+  border,
+  borderWidth = 4,
   watermark,
   customGradient,
 }: {
@@ -64,6 +66,8 @@ export function LivePreview({
   glow: boolean;
   tilt: TiltPreset;
   windowStyle: WindowStyle;
+  border?: 'none' | 'light' | 'dark';
+  borderWidth?: number;
   watermark?: boolean;
   customGradient?: { colors: string[]; angle: number };
 }) {
@@ -130,7 +134,19 @@ export function LivePreview({
             'transition-shadow duration-300',
             isPhone ? 'h-full w-auto max-w-none' : 'w-full',
           )}
-          style={{ boxShadow: SHADOW_CSS[shadow] }}
+          style={{
+            boxShadow: SHADOW_CSS[shadow],
+            // Border drawn with an outline so it hugs the rounded frame edge
+            // without affecting layout. Scaled down to match the mini preview.
+            ...(border && border !== 'none'
+              ? {
+                  outline: `${Math.max(1, borderWidth * 0.5)}px solid ${
+                    border === 'dark' ? '#0b0b0f' : '#ffffff'
+                  }`,
+                  outlineOffset: `-${Math.max(1, borderWidth * 0.5)}px`,
+                }
+              : {}),
+          }}
         >
           <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
         </DeviceFrame>

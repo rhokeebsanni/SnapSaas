@@ -7,6 +7,7 @@ export type OutputScale = 1 | 2 | 3;
 export type ShadowPreset = 'none' | 'soft' | 'medium' | 'dramatic';
 export type TiltPreset = 'none' | 'left' | 'right';
 export type WindowStyle = 'light' | 'dark';
+export type BorderStyle = 'none' | 'light' | 'dark';
 
 /**
  * Settings accepted from the editor. Kept in sync with the worker's schema; the
@@ -25,6 +26,9 @@ export const captureSettingsSchema = z.object({
   glow: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
   windowStyle: z.enum(['light', 'dark']).default('light'),
+  // A border drawn around the framed device. Width/radius in logical px.
+  border: z.enum(['none', 'light', 'dark']).default('none'),
+  borderWidth: z.number().int().min(1).max(24).default(4),
   // When `background` is "custom", this defines the user-built gradient: 2–4 hex
   // color stops and an angle in degrees.
   customGradient: z

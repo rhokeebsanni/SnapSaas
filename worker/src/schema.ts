@@ -13,6 +13,8 @@ export const captureSettingsSchema = z.object({
   glow: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
   windowStyle: z.enum(['light', 'dark']).default('light'),
+  border: z.enum(['none', 'light', 'dark']).default('none'),
+  borderWidth: z.number().min(1).max(24).default(4),
   customGradient: z
     .object({
       colors: z

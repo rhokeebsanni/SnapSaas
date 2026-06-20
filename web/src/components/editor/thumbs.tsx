@@ -86,6 +86,22 @@ export function WindowThumb({ style }: { style: WindowStyle }) {
   );
 }
 
+export function BorderThumb({ border }: { border: 'none' | 'light' | 'dark' }) {
+  return (
+    <div
+      className="bg-muted size-7 rounded-[5px]"
+      style={
+        border === 'none'
+          ? undefined
+          : {
+              outline: `2px solid ${border === 'dark' ? '#0b0b0f' : '#ffffff'}`,
+              outlineOffset: '-2px',
+            }
+      }
+    />
+  );
+}
+
 export function ToggleThumb({ on, css }: { on: boolean; css?: string }) {
   // Used for the glow on/off tiles: a chip with or without a colored halo.
   return (

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { toast } from 'sonner';
 
 import type {
+  BorderStyle,
   CaptureMode,
   FrameId,
   OutputFormat,
@@ -34,6 +35,8 @@ interface EditorState {
   glow: boolean;
   tilt: TiltPreset;
   windowStyle: WindowStyle;
+  border: BorderStyle;
+  borderWidth: number;
   scrollY: number;
   outputWidth: number | null;
   outputHeight: number | null;
@@ -55,6 +58,8 @@ interface EditorState {
   setGlow: (glow: boolean) => void;
   setTilt: (tilt: TiltPreset) => void;
   setWindowStyle: (windowStyle: WindowStyle) => void;
+  setBorder: (border: BorderStyle) => void;
+  setBorderWidth: (borderWidth: number) => void;
   setScrollY: (scrollY: number) => void;
   setOutputWidth: (outputWidth: number | null) => void;
   setOutputHeight: (outputHeight: number | null) => void;
@@ -83,6 +88,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   glow: false,
   tilt: 'none',
   windowStyle: 'light',
+  border: 'none',
+  borderWidth: 4,
   scrollY: 0,
   outputWidth: null,
   outputHeight: null,
@@ -104,6 +111,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setGlow: (glow) => set({ glow }),
   setTilt: (tilt) => set({ tilt }),
   setWindowStyle: (windowStyle) => set({ windowStyle }),
+  setBorder: (border) => set({ border }),
+  setBorderWidth: (borderWidth) => set({ borderWidth }),
   setScrollY: (scrollY) => set({ scrollY }),
   setOutputWidth: (outputWidth) => set({ outputWidth }),
   setOutputHeight: (outputHeight) => set({ outputHeight }),
@@ -128,6 +137,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       glow,
       tilt,
       windowStyle,
+      border,
+      borderWidth,
       scrollY,
       outputWidth,
       outputHeight,
@@ -163,6 +174,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           glow,
           tilt,
           windowStyle,
+          border,
+          borderWidth,
           scrollY,
           ...(outputWidth ? { outputWidth } : {}),
           ...(outputHeight ? { outputHeight } : {}),

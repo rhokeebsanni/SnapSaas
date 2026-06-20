@@ -26,12 +26,19 @@ import { MobileStudio } from '@/components/editor/mobile-studio';
 import { Section } from '@/components/editor/section';
 import { Segmented } from '@/components/editor/segmented';
 import { ThumbPicker } from '@/components/editor/thumb-picker';
-import { FrameThumb, ShadowThumb, TiltThumb, WindowThumb } from '@/components/editor/thumbs';
+import {
+  BorderThumb,
+  FrameThumb,
+  ShadowThumb,
+  TiltThumb,
+  WindowThumb,
+} from '@/components/editor/thumbs';
 import { Slider } from '@/components/ui/slider';
 import { BACKGROUNDS, FRAMES, PADDING_PRESETS } from '@/lib/templates';
 import { useEditorStore } from '@/store/editor';
 import { downloadAsset } from '@/lib/download';
 import type {
+  BorderStyle,
   OutputFormat,
   OutputScale,
   ShadowPreset,
@@ -60,6 +67,12 @@ const TILT_OPTIONS: { value: TiltPreset; label: string }[] = [
 ];
 
 const WINDOW_OPTIONS: { value: WindowStyle; label: string }[] = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
+
+const BORDER_OPTIONS: { value: BorderStyle; label: string }[] = [
+  { value: 'none', label: 'None' },
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
 ];
@@ -405,6 +418,34 @@ export function Editor({
               </Control>
             )}
 
+            <Control label="Border">
+              <ThumbPicker
+                value={s.border}
+                onChange={onEdit(s.setBorder)}
+                columns={3}
+                options={BORDER_OPTIONS.map((o) => ({
+                  ...o,
+                  preview: <BorderThumb border={o.value} />,
+                }))}
+              />
+              {s.border !== 'none' && (
+                <div className="mt-2 space-y-1">
+                  <div className="text-muted-foreground flex items-center justify-between text-xs">
+                    <span>Width</span>
+                    <span className="font-mono tabular-nums">{s.borderWidth}px</span>
+                  </div>
+                  <Slider
+                    value={[s.borderWidth]}
+                    onValueChange={(v: number[]) => onEdit(s.setBorderWidth)(v[0])}
+                    min={1}
+                    max={24}
+                    step={1}
+                    aria-label="Border width"
+                  />
+                </div>
+              )}
+            </Control>
+
             <Control label="Glow">
               <button
                 type="button"
@@ -523,6 +564,8 @@ export function Editor({
                   glow={s.glow}
                   tilt={s.tilt}
                   windowStyle={s.windowStyle}
+                  border={s.border}
+                  borderWidth={s.borderWidth}
                   watermark={watermark}
                   customGradient={s.background === 'custom' ? s.customGradient : undefined}
                 />

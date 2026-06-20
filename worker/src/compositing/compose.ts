@@ -139,6 +139,18 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
 
   layers.push({ input: device.buffer, top: pad, left: pad });
 
+  // Optional border: a stroked rounded rect hugging the device edge.
+  if (settings.border && settings.border !== 'none') {
+    const bw = Math.max(1, px(settings.borderWidth ?? 4));
+    const stroke = settings.border === 'dark' ? '#0b0b0f' : '#ffffff';
+    // Inset by half the stroke so the border sits on the device edge, not outside.
+    const inset = bw / 2;
+    const borderSvg = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${device.width}" height="${device.height}"><rect x="${inset}" y="${inset}" width="${device.width - bw}" height="${device.height - bw}" rx="${Math.max(0, device.cornerRadius - inset)}" ry="${Math.max(0, device.cornerRadius - inset)}" fill="none" stroke="${stroke}" stroke-width="${bw}" stroke-opacity="0.9"/></svg>`,
+    );
+    layers.push({ input: borderSvg, top: pad, left: pad });
+  }
+
   // Compose the framed device on its background at the derived canvas size.
   let composed = await sharp(background).composite(layers).png().toBuffer();
   let outW = canvasW;

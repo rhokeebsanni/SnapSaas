@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { Logo } from '@/components/brand/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserMenu } from '@/components/dashboard/user-menu';
+import { MobileNotice } from '@/components/dashboard/mobile-notice';
 import { getServerSession } from '@/lib/session';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -41,7 +42,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        <MobileNotice />
+        {children}
+      </main>
     </div>
   );
 }

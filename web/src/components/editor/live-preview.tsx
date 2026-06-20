@@ -68,23 +68,23 @@ export function LivePreview({
   const padPct = Math.min(14, (padding / 400) * 14 + 1.5);
   const glowColor = glowColorForCss(background);
 
-  // The iPhone frame is tall and narrow (aspect 9/19). Sizing it by width alone
-  // makes it overflow the (height-capped) preview box and get clipped, so cap
-  // the device's *width* tightly for the phone — its height then fits.
+  // Each frame locks its own aspect ratio. We let the device size by HEIGHT
+  // (max-h-full) so the whole preview scales to fit the box on any screen — the
+  // tall iPhone shrinks, wide browser/macbook frames grow — never clipped.
+  // Caps stop a frame from getting comically large on huge screens.
   const isPhone = frame === 'iphone';
 
   return (
     <div
-      className="grid w-full place-items-center overflow-hidden rounded-xl transition-[padding] duration-300"
+      className="grid max-h-full w-fit max-w-full place-items-center rounded-xl transition-[padding] duration-300"
       style={{ background: bg.css, padding: `${padPct}%` }}
     >
       <div
         className={cn(
-          'relative w-full transition-transform duration-500 ease-out',
-          // The phone is a tall 9/19 frame; sizing by width alone overflows the
-          // height-capped preview box and clips. A tight width keeps it short
-          // enough (~210px → ~443px tall) to fit comfortably.
-          isPhone ? 'mx-auto max-w-[210px]' : 'max-w-xl',
+          'relative max-h-full transition-transform duration-500 ease-out',
+          // Phone: a tall 9/19 frame — bound by height, narrow width cap.
+          // Wide frames: bound by width, full available width.
+          isPhone ? 'h-full w-auto max-w-[300px]' : 'w-full max-w-xl',
         )}
         style={{ transform: TILT_TRANSFORM[tilt], transformStyle: 'preserve-3d' }}
       >
@@ -100,7 +100,12 @@ export function LivePreview({
           variant={frame}
           url={url || 'yoursite.com'}
           windowStyle={windowStyle}
-          className="w-full transition-shadow duration-300"
+          className={cn(
+            'transition-shadow duration-300',
+            // Phone is driven by height so it scales to fit the box; wide frames
+            // by width.
+            isPhone ? 'h-full w-auto max-w-none' : 'w-full',
+          )}
           style={{ boxShadow: SHADOW_CSS[shadow] }}
         >
           <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />

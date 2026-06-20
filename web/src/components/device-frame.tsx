@@ -30,6 +30,9 @@ export function DeviceFrame({
     return (
       <div
         className={cn(
+          // Aspect ratio is locked; the caller decides whether it's sized by
+          // width (w-full) or height (h-full w-auto). Default keeps the old
+          // width-driven sizing for the marketing pages.
           'relative mx-auto aspect-[9/19] w-full max-w-[260px] rounded-[2.5rem] border-[6px] border-neutral-800 bg-neutral-800 shadow-2xl',
           className,
         )}

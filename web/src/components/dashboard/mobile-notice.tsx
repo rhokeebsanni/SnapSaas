@@ -10,15 +10,18 @@ const DISMISS_KEY = 'snapsaas:mobile-notice-dismissed';
  * built for a desktop-sized canvas. Hidden on lg+ and remembered once dismissed.
  */
 export function MobileNotice() {
-  const [show, setShow] = React.useState(false);
+  // Re-render once mounted so we can safely read localStorage (avoids hydration
+  // mismatch) without calling setState inside an effect.
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const [dismissed, setDismissed] = React.useState(false);
 
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (window.localStorage.getItem(DISMISS_KEY) === '1') return;
-    setShow(true);
-  }, []);
-
-  if (!show) return null;
+  if (!mounted || dismissed) return null;
+  if (typeof window !== 'undefined' && window.localStorage.getItem(DISMISS_KEY) === '1')
+    return null;
 
   return (
     <div className="bg-muted/40 relative mb-4 flex items-start gap-3 rounded-xl border p-3 text-sm lg:hidden">
@@ -33,7 +36,7 @@ export function MobileNotice() {
         aria-label="Dismiss"
         onClick={() => {
           window.localStorage.setItem(DISMISS_KEY, '1');
-          setShow(false);
+          setDismissed(true);
         }}
         className="text-muted-foreground hover:text-foreground absolute right-2 top-2 rounded p-1"
       >

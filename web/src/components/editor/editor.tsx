@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { LivePreview } from '@/components/editor/live-preview';
 import { PreflightStatus } from '@/components/editor/preflight-status';
 import { Segmented } from '@/components/editor/segmented';
+import { ThumbPicker } from '@/components/editor/thumb-picker';
+import { FrameThumb, ShadowThumb, TiltThumb, WindowThumb } from '@/components/editor/thumbs';
 import { Slider } from '@/components/ui/slider';
 import { BACKGROUNDS, FRAMES, PADDING_PRESETS } from '@/lib/templates';
 import { useEditorStore } from '@/store/editor';
@@ -174,14 +176,19 @@ export function Editor({
         </form>
 
         <Control label="Frame">
-          <Segmented
+          <ThumbPicker
             value={s.frame}
             onChange={onEdit(s.setFrame)}
-            options={FRAMES.map((f) => ({ value: f.id, label: f.name }))}
+            columns={3}
+            options={FRAMES.map((f) => ({
+              value: f.id,
+              label: f.name,
+              preview: <FrameThumb frame={f.id} />,
+            }))}
           />
         </Control>
 
-        <Control label="Background">
+        <Control label="Background" hint={BACKGROUNDS.find((b) => b.id === s.background)?.name}>
           <div className="grid grid-cols-4 gap-2">
             {BACKGROUNDS.map((b) => {
               const locked = b.tier === 'pro' && !allTemplates;
@@ -283,19 +290,39 @@ export function Editor({
         </div>
 
         <Control label="Shadow">
-          <Segmented value={s.shadow} onChange={onEdit(s.setShadow)} options={SHADOW_OPTIONS} />
+          <ThumbPicker
+            value={s.shadow}
+            onChange={onEdit(s.setShadow)}
+            columns={4}
+            options={SHADOW_OPTIONS.map((o) => ({
+              ...o,
+              preview: <ShadowThumb shadow={o.value} />,
+            }))}
+          />
         </Control>
 
         <Control label="3D tilt">
-          <Segmented value={s.tilt} onChange={onEdit(s.setTilt)} options={TILT_OPTIONS} />
+          <ThumbPicker
+            value={s.tilt}
+            onChange={onEdit(s.setTilt)}
+            columns={3}
+            options={TILT_OPTIONS.map((o) => ({
+              ...o,
+              preview: <TiltThumb tilt={o.value} />,
+            }))}
+          />
         </Control>
 
         {showWindowStyle && (
           <Control label="Window">
-            <Segmented
+            <ThumbPicker
               value={s.windowStyle}
               onChange={onEdit(s.setWindowStyle)}
-              options={WINDOW_OPTIONS}
+              columns={2}
+              options={WINDOW_OPTIONS.map((o) => ({
+                ...o,
+                preview: <WindowThumb style={o.value} />,
+              }))}
             />
           </Control>
         )}

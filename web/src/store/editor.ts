@@ -37,6 +37,7 @@ interface EditorState {
   scrollY: number;
   outputWidth: number | null;
   outputHeight: number | null;
+  customGradient: { colors: string[]; angle: number };
 
   status: RunStatus;
   jobId: string | null;
@@ -57,6 +58,7 @@ interface EditorState {
   setScrollY: (scrollY: number) => void;
   setOutputWidth: (outputWidth: number | null) => void;
   setOutputHeight: (outputHeight: number | null) => void;
+  setCustomGradient: (g: { colors: string[]; angle: number }) => void;
   /** Apply a bundle of style settings at once (from a one-click template). */
   applyTemplate: (settings: Partial<EditorState>) => void;
 
@@ -84,6 +86,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   scrollY: 0,
   outputWidth: null,
   outputHeight: null,
+  customGradient: { colors: ['#7c3aed', '#06b6d4'], angle: 135 },
 
   status: 'idle',
   jobId: null,
@@ -104,6 +107,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setScrollY: (scrollY) => set({ scrollY }),
   setOutputWidth: (outputWidth) => set({ outputWidth }),
   setOutputHeight: (outputHeight) => set({ outputHeight }),
+  setCustomGradient: (customGradient) => set({ customGradient }),
   applyTemplate: (settings) =>
     // Applying a template changes the look, so drop any shown result back to the
     // live preview.
@@ -127,6 +131,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       scrollY,
       outputWidth,
       outputHeight,
+      customGradient,
       status,
     } = get();
     if (status === 'submitting' || status === 'queued' || status === 'processing') return;
@@ -161,6 +166,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           scrollY,
           ...(outputWidth ? { outputWidth } : {}),
           ...(outputHeight ? { outputHeight } : {}),
+          ...(background === 'custom' ? { customGradient } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));

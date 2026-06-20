@@ -25,6 +25,17 @@ export const captureSettingsSchema = z.object({
   glow: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
   windowStyle: z.enum(['light', 'dark']).default('light'),
+  // When `background` is "custom", this defines the user-built gradient: 2–4 hex
+  // color stops and an angle in degrees.
+  customGradient: z
+    .object({
+      colors: z
+        .array(z.string().regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/))
+        .min(2)
+        .max(4),
+      angle: z.number().int().min(0).max(360),
+    })
+    .optional(),
   // Pixels to scroll down before capturing (viewport mode only), so users can
   // grab a section further down the page instead of just the top.
   scrollY: z.number().int().min(0).max(20000).default(0),

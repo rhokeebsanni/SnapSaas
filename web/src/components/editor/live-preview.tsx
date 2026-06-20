@@ -54,6 +54,7 @@ export function LivePreview({
   tilt,
   windowStyle,
   watermark,
+  customGradient,
 }: {
   url: string;
   frame: FrameId;
@@ -64,11 +65,20 @@ export function LivePreview({
   tilt: TiltPreset;
   windowStyle: WindowStyle;
   watermark?: boolean;
+  customGradient?: { colors: string[]; angle: number };
 }) {
-  const bg = getBackground(background);
+  const preset = getBackground(background);
+  // A custom gradient overrides the preset's css when active.
+  const bgCss =
+    background === 'custom' && customGradient
+      ? `linear-gradient(${customGradient.angle}deg, ${customGradient.colors.join(', ')})`
+      : preset.css;
   // Map the worker's 0–400px padding onto a sensible preview range (0–14%).
   const padPct = Math.min(14, (padding / 400) * 14 + 1.5);
-  const glowColor = glowColorForCss(background);
+  const glowColor =
+    background === 'custom' && customGradient
+      ? customGradient.colors[0]
+      : glowColorForCss(background);
 
   // Wide frames (browser/macbook) size by width — the box grows to the column
   // width and looks great. The iPhone is tall, so instead we bind the whole
@@ -82,7 +92,7 @@ export function LivePreview({
         'relative grid place-items-center overflow-hidden rounded-xl transition-[padding] duration-300',
         isPhone ? 'h-full w-auto max-w-full' : 'w-full max-w-full',
       )}
-      style={{ background: bg.css, padding: `${padPct}%` }}
+      style={{ background: bgCss, padding: `${padPct}%` }}
     >
       {/* Watermark — mirrors the worker's "Made with SnapSaas" so the preview
           shows exactly what a free-plan export will look like. */}

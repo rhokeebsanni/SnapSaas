@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { LivePreview } from '@/components/editor/live-preview';
 import { PreflightStatus } from '@/components/editor/preflight-status';
 import { TemplateGallery } from '@/components/editor/template-gallery';
+import { GradientBuilder } from '@/components/editor/gradient-builder';
 import { Segmented } from '@/components/editor/segmented';
 import { ThumbPicker } from '@/components/editor/thumb-picker';
 import { FrameThumb, ShadowThumb, TiltThumb, WindowThumb } from '@/components/editor/thumbs';
@@ -205,8 +206,31 @@ export function Editor({
           />
         </Control>
 
-        <Control label="Background" hint={BACKGROUNDS.find((b) => b.id === s.background)?.name}>
+        <Control
+          label="Background"
+          hint={
+            s.background === 'custom'
+              ? 'Custom gradient'
+              : BACKGROUNDS.find((b) => b.id === s.background)?.name
+          }
+        >
           <div className="grid grid-cols-4 gap-2">
+            {/* Custom gradient tile — always first. */}
+            <button
+              type="button"
+              title="Custom gradient"
+              onClick={() => onEdit(s.setBackground)('custom')}
+              style={{
+                background: `linear-gradient(${s.customGradient.angle}deg, ${s.customGradient.colors.join(', ')})`,
+              }}
+              className={cn(
+                'relative grid aspect-square place-items-center rounded-lg border transition-all',
+                s.background === 'custom' &&
+                  'ring-brand ring-offset-background ring-2 ring-offset-2',
+              )}
+            >
+              <Wand2 className="size-4 text-white drop-shadow" />
+            </button>
             {shownBackgrounds.map((b) => {
               const locked = b.tier === 'pro' && !allTemplates;
               const active = b.id === s.background;
@@ -244,6 +268,17 @@ export function Editor({
                 className={cn('size-3.5 transition-transform', showAllBg && 'rotate-180')}
               />
             </button>
+          )}
+          {s.background === 'custom' && (
+            <div className="mt-3">
+              <GradientBuilder
+                value={s.customGradient}
+                onChange={(g) => {
+                  if (s.status === 'done') s.reset();
+                  s.setCustomGradient(g);
+                }}
+              />
+            </div>
           )}
         </Control>
 
@@ -436,11 +471,13 @@ export function Editor({
       <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
         <div
           className={cn(
-            'bg-muted/30 relative grid min-h-[420px] place-items-center overflow-hidden rounded-2xl border p-6',
-            // While editing, fill the viewport so the live preview is big. Once a
-            // result is shown, cap height instead so the download bar below stays
-            // on screen without scrolling.
-            isDone ? 'lg:max-h-[calc(100dvh-12rem)]' : 'lg:h-[calc(100dvh-7rem)]',
+            'bg-muted/30 relative grid place-items-center overflow-hidden rounded-2xl border p-6',
+            // A definite height at every breakpoint so the (height-bound) iPhone
+            // preview always has something to fit into and never clips. On desktop
+            // we fill the viewport; once a result is shown we cap it so the
+            // download bar below stays on screen.
+            'h-[55vh] min-h-[360px]',
+            isDone ? 'lg:h-auto lg:max-h-[calc(100dvh-12rem)]' : 'lg:h-[calc(100dvh-7rem)]',
           )}
         >
           {shownAsset && s.status === 'done' ? (
@@ -470,6 +507,7 @@ export function Editor({
                 tilt={s.tilt}
                 windowStyle={s.windowStyle}
                 watermark={watermark}
+                customGradient={s.background === 'custom' ? s.customGradient : undefined}
               />
             </div>
           )}

@@ -56,15 +56,21 @@ export async function POST(request: Request) {
     );
   }
 
-  // Validate the background and gate Pro-only templates.
-  const bgOption = BACKGROUNDS.find((b) => b.id === parsed.data.background);
-  if (!bgOption) {
+  // Validate the background and gate Pro-only templates. "custom" is a
+  // user-built gradient (not in the preset catalog) and is available to all
+  // plans, but it must carry a valid customGradient payload.
+  const isCustom = parsed.data.background === 'custom';
+  const bgOption = isCustom ? null : BACKGROUNDS.find((b) => b.id === parsed.data.background);
+  if (!isCustom && !bgOption) {
     return NextResponse.json({ error: 'Unknown background' }, { status: 400 });
+  }
+  if (isCustom && !parsed.data.customGradient) {
+    return NextResponse.json({ error: 'Custom background needs a gradient.' }, { status: 400 });
   }
 
   // Plan + credit gating.
   const account = await getAccount(session.user.id);
-  if (bgOption.tier === 'pro' && !account.plan.limits.allTemplates) {
+  if (bgOption?.tier === 'pro' && !account.plan.limits.allTemplates) {
     return NextResponse.json({ error: 'That background is a Pro feature.' }, { status: 403 });
   }
   const finiteCredits = account.plan.limits.capturesPerMonth >= 0;

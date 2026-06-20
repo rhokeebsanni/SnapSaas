@@ -13,6 +13,15 @@ export const captureSettingsSchema = z.object({
   glow: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
   windowStyle: z.enum(['light', 'dark']).default('light'),
+  customGradient: z
+    .object({
+      colors: z
+        .array(z.string().regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/))
+        .min(2)
+        .max(4),
+      angle: z.number().min(0).max(360),
+    })
+    .optional(),
   scrollY: z.number().min(0).max(20000).default(0),
   outputWidth: z.number().min(200).max(4000).optional(),
   outputHeight: z.number().min(200).max(4000).optional(),

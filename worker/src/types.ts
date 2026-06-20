@@ -31,6 +31,8 @@ export interface CaptureSettings {
   tilt?: TiltPreset;
   /** Browser chrome styling (default 'light'). Only affects the browser frame. */
   windowStyle?: WindowStyle;
+  /** User-built gradient, used when `background` is "custom". */
+  customGradient?: { colors: string[]; angle: number };
   /** Pixels to scroll down before capturing (viewport mode only; default 0). */
   scrollY?: number;
   /** Exact output canvas size (logical px). When set, the composition is fit

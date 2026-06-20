@@ -1,7 +1,12 @@
 import sharp from 'sharp';
 
 import { SHADOW_PRESETS, TILT_DEGREES, type CaptureSettings, type RenderOutput } from '../types';
-import { getBackground, glowColorFor, renderBackgroundSvg } from '../config/templates';
+import {
+  getBackground,
+  glowColorFor,
+  renderBackgroundSvg,
+  type BackgroundPreset,
+} from '../config/templates';
 import { frameScreenshot } from './frames';
 
 function escapeXml(value: string): string {
@@ -78,7 +83,19 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
   const canvasW = device.width + pad * 2;
   const canvasH = device.height + pad * 2;
 
-  const bg = getBackground(settings.background);
+  // A user-built custom gradient overrides the preset catalog.
+  const bg =
+    settings.background === 'custom' && settings.customGradient
+      ? ({
+          id: 'custom',
+          name: 'Custom',
+          type: 'gradient' as const,
+          angle: settings.customGradient.angle,
+          stops: settings.customGradient.colors.map(
+            (c, i, arr) => [arr.length === 1 ? 0 : i / (arr.length - 1), c] as [number, string],
+          ),
+        } satisfies BackgroundPreset)
+      : getBackground(settings.background);
 
   // Background layer.
   const background = Buffer.from(renderBackgroundSvg(bg, canvasW, canvasH));

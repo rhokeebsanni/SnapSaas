@@ -5,7 +5,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { env } from '../env';
 import { getDb, schema } from '../db';
 import { captureScreenshot } from '../capture/browser';
-import { composeAsset } from '../compositing/compose';
+import { composeAsset, composeAnimation } from '../compositing/compose';
 import { uploadAsset, isR2Configured } from '../storage/r2';
 import { sendAssetsReadyEmail } from '../email';
 import {
@@ -33,24 +33,49 @@ async function processCapture(bullJob: BullJob<CaptureJobData>): Promise<void> {
 
   const settings = row.settings as CaptureSettings;
 
-  // Capture once, then encode every output format from the same composite.
-  const shot = await captureScreenshot(settings);
-
-  for (const format of OUTPUT_FORMATS) {
-    const output = await composeAsset(shot, { ...settings, format });
-    const key = `captures/${row.userId}/${jobId}/${format}.${fileExtension(format)}`;
-    const url = await uploadAsset(key, output.buffer, format);
+  if (settings.animationUrls && settings.animationUrls.length > 0) {
+    // Animation: capture each frame URL in viewport mode (for consistent size),
+    // compose them identically, and encode a single animated GIF.
+    const frameUrls = [settings.url, ...settings.animationUrls];
+    const frameSettings: CaptureSettings = { ...settings, mode: 'viewport' };
+    const shots: Buffer[] = [];
+    for (const url of frameUrls) {
+      shots.push(await captureScreenshot({ ...frameSettings, url }));
+    }
+    const output = await composeAnimation(shots, frameSettings);
+    const key = `captures/${row.userId}/${jobId}/animation.gif`;
+    const url = await uploadAsset(key, output.buffer, 'gif');
     await db.insert(schema.asset).values({
       id: randomUUID(),
       jobId,
       userId: row.userId,
       r2Key: key,
       url,
-      format,
+      format: 'gif',
       width: output.width,
       height: output.height,
       hasWatermark: settings.watermark,
     });
+  } else {
+    // Static: capture once, then encode every output format from the composite.
+    const shot = await captureScreenshot(settings);
+
+    for (const format of OUTPUT_FORMATS) {
+      const output = await composeAsset(shot, { ...settings, format });
+      const key = `captures/${row.userId}/${jobId}/${format}.${fileExtension(format)}`;
+      const url = await uploadAsset(key, output.buffer, format);
+      await db.insert(schema.asset).values({
+        id: randomUUID(),
+        jobId,
+        userId: row.userId,
+        r2Key: key,
+        url,
+        format,
+        width: output.width,
+        height: output.height,
+        hasWatermark: settings.watermark,
+      });
+    }
   }
 
   await db

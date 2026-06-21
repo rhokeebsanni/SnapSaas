@@ -32,6 +32,8 @@ export const captureSettingsSchema = z.object({
     })
     .optional(),
   scrollY: z.number().min(0).max(20000).default(0),
+  animationUrls: z.array(z.string().url()).max(7).optional(),
+  frameDuration: z.number().min(200).max(6000).default(1200),
   outputWidth: z.number().min(200).max(4000).optional(),
   outputHeight: z.number().min(200).max(4000).optional(),
   viewportWidth: z.number().min(320).max(2560).optional(),

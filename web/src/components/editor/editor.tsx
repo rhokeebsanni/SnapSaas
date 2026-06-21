@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { track } from '@vercel/analytics';
 import {
   ChevronDown,
+  Clapperboard,
   Download,
   ImageOff,
   LoaderCircle,
@@ -23,6 +24,7 @@ import { PreflightStatus } from '@/components/editor/preflight-status';
 import { TemplateGallery } from '@/components/editor/template-gallery';
 import { GradientBuilder } from '@/components/editor/gradient-builder';
 import { MobileStudio } from '@/components/editor/mobile-studio';
+import { AnimateControls } from '@/components/editor/animate-controls';
 import { Section } from '@/components/editor/section';
 import { Segmented } from '@/components/editor/segmented';
 import { ThumbPicker } from '@/components/editor/thumb-picker';
@@ -92,11 +94,13 @@ export function Editor({
   maxScale,
   allTemplates,
   watermark,
+  canAnimate,
   initialUrl,
 }: {
   maxScale: OutputScale;
   allTemplates: boolean;
   watermark: boolean;
+  canAnimate: boolean;
   initialUrl?: string;
 }) {
   const s = useEditorStore();
@@ -599,6 +603,10 @@ export function Editor({
             <Control label="Download format">
               <Segmented value={s.format} onChange={s.setFormat} options={FORMAT_OPTIONS} />
             </Control>
+          </Section>
+
+          <Section title="Animate" icon={<Clapperboard className="size-4" />} defaultOpen={false}>
+            <AnimateControls canAnimate={canAnimate} />
           </Section>
         </div>
 

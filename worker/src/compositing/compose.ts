@@ -232,6 +232,55 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
   return { format: settings.format, width: outW, height: outH, buffer };
 }
 
+export interface AnimationOutput {
+  format: 'gif';
+  width: number;
+  height: number;
+  buffer: Buffer;
+}
+
+/**
+ * Compose a multi-frame animated GIF: each shot is framed/styled identically
+ * (so every frame is the same size), stacked into a vertical strip, then encoded
+ * as an animated GIF with the given per-frame hold time. Uses Sharp's native
+ * animation (no ffmpeg).
+ */
+export async function composeAnimation(
+  shots: Buffer[],
+  settings: CaptureSettings,
+): Promise<AnimationOutput> {
+  if (shots.length === 0) throw new Error('Animation needs at least one frame');
+
+  // Compose every frame as a PNG with the same settings.
+  const composed: { buffer: Buffer; width: number; height: number }[] = [];
+  for (const shot of shots) {
+    composed.push(await composeAsset(shot, { ...settings, format: 'png' }));
+  }
+
+  const first = composed[0]!;
+  const { width, height } = first;
+  // Normalize all frames to the first frame's dimensions (they should already
+  // match in viewport mode, but guard against any drift so frames line up).
+  const frames = await Promise.all(
+    composed.map((f) =>
+      f.width === width && f.height === height
+        ? f.buffer
+        : sharp(f.buffer)
+            .resize(width, height, { fit: 'contain', background: '#00000000' })
+            .png()
+            .toBuffer(),
+    ),
+  );
+
+  // Join the frames as animation pages and encode an animated GIF (no ffmpeg).
+  const delay = frames.map(() => settings.frameDuration ?? 1200);
+  const gif = await sharp(frames, { join: { animated: true } })
+    .gif({ loop: 0, delay })
+    .toBuffer();
+
+  return { format: 'gif', width, height, buffer: gif };
+}
+
 function hostFromUrl(raw: string): string {
   try {
     return new URL(raw).host;

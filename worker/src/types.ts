@@ -45,6 +45,11 @@ export interface CaptureSettings {
   customGradient?: { colors: string[]; angle: number };
   /** Pixels to scroll down before capturing (viewport mode only; default 0). */
   scrollY?: number;
+  /** Animation frames (extra URLs beyond `url`). When present, the job encodes
+      an animated GIF slideshow instead of static images. */
+  animationUrls?: string[];
+  /** Hold time per animation frame, in milliseconds (default 1200). */
+  frameDuration?: number;
   /** Exact output canvas size (logical px). When set, the composition is fit
       into these dimensions without distortion; otherwise size is derived. */
   outputWidth?: number;

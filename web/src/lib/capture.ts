@@ -53,6 +53,12 @@ export const captureSettingsSchema = z.object({
   // Pixels to scroll down before capturing (viewport mode only), so users can
   // grab a section further down the page instead of just the top.
   scrollY: z.number().int().min(0).max(20000).default(0),
+  // Animation (Pro): when 2+ URLs are given, capture each, compose with the same
+  // style, and encode an animated GIF/WebP slideshow instead of static images.
+  // `url` is the first frame; these are the rest.
+  animationUrls: z.array(z.string().url()).max(7).optional(),
+  // Hold time per animation frame, in milliseconds.
+  frameDuration: z.number().int().min(200).max(6000).default(1200),
   // Optional exact output dimensions (logical px). When set, the final
   // composition is fit into this canvas (no distortion); when omitted the size
   // is derived from the frame + padding.

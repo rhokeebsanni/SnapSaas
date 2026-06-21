@@ -45,6 +45,10 @@ interface EditorState {
   outputWidth: number | null;
   outputHeight: number | null;
   customGradient: { colors: string[]; angle: number };
+  // Animation: when on, capture `url` + these frame URLs into an animated GIF.
+  animate: boolean;
+  animationUrls: string[];
+  frameDuration: number;
 
   status: RunStatus;
   jobId: string | null;
@@ -73,6 +77,9 @@ interface EditorState {
   setOutputWidth: (outputWidth: number | null) => void;
   setOutputHeight: (outputHeight: number | null) => void;
   setCustomGradient: (g: { colors: string[]; angle: number }) => void;
+  setAnimate: (animate: boolean) => void;
+  setAnimationUrls: (animationUrls: string[]) => void;
+  setFrameDuration: (frameDuration: number) => void;
   /** Apply a bundle of style settings at once (from a one-click template). */
   applyTemplate: (settings: Partial<EditorState>) => void;
 
@@ -108,6 +115,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   outputWidth: null,
   outputHeight: null,
   customGradient: { colors: ['#7c3aed', '#06b6d4'], angle: 135 },
+  animate: false,
+  animationUrls: [],
+  frameDuration: 1200,
 
   status: 'idle',
   jobId: null,
@@ -136,6 +146,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setOutputWidth: (outputWidth) => set({ outputWidth }),
   setOutputHeight: (outputHeight) => set({ outputHeight }),
   setCustomGradient: (customGradient) => set({ customGradient }),
+  setAnimate: (animate) => set({ animate }),
+  setAnimationUrls: (animationUrls) => set({ animationUrls }),
+  setFrameDuration: (frameDuration) => set({ frameDuration }),
   applyTemplate: (settings) =>
     // Applying a template changes the look, so drop any shown result back to the
     // live preview.
@@ -167,6 +180,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       outputWidth,
       outputHeight,
       customGradient,
+      animate,
+      animationUrls,
+      frameDuration,
       status,
     } = get();
     if (status === 'submitting' || status === 'queued' || status === 'processing') return;
@@ -177,7 +193,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       toast.error('Enter a URL to capture.');
       return;
     }
-    const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const normalize = (u: string) =>
+      /^https?:\/\//i.test(u.trim()) ? u.trim() : `https://${u.trim()}`;
+    const normalized = normalize(trimmed);
+    // Animation frame URLs: trim, drop blanks, normalize the scheme.
+    const cleanedFrameUrls = animationUrls
+      .map((u) => u.trim())
+      .filter(Boolean)
+      .map(normalize);
 
     set({ status: 'submitting', error: null, assets: [], jobId: null });
 
@@ -209,6 +232,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           ...(outputWidth ? { outputWidth } : {}),
           ...(outputHeight ? { outputHeight } : {}),
           ...(background === 'custom' ? { customGradient } : {}),
+          ...(animate && cleanedFrameUrls.length > 0
+            ? { animationUrls: cleanedFrameUrls, frameDuration }
+            : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));

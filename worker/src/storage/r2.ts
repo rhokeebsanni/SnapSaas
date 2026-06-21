@@ -28,17 +28,18 @@ function getClient(): S3Client {
   return client;
 }
 
-const CONTENT_TYPE: Record<OutputFormat, string> = {
+const CONTENT_TYPE: Record<OutputFormat | 'gif', string> = {
   png: 'image/png',
   jpeg: 'image/jpeg',
   webp: 'image/webp',
+  gif: 'image/gif',
 };
 
 /** Upload a rendered buffer to R2 and return its public URL. */
 export async function uploadAsset(
   key: string,
   buffer: Buffer,
-  format: OutputFormat,
+  format: OutputFormat | 'gif',
 ): Promise<string> {
   if (!isR2Configured()) {
     throw new Error('R2 storage is not configured');

@@ -45,10 +45,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // SSRF protection: only ever capture public http(s) hosts.
+  // SSRF protection: only ever capture public http(s) hosts. For animation we
+  // must validate every frame URL too.
   let targetUrl: URL;
   try {
     targetUrl = await assertPublicUrl(parsed.data.url);
+    for (const frameUrl of parsed.data.animationUrls ?? []) {
+      await assertPublicUrl(frameUrl);
+    }
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'URL not allowed' },
@@ -72,6 +76,11 @@ export async function POST(request: Request) {
   const account = await getAccount(session.user.id);
   if (bgOption?.tier === 'pro' && !account.plan.limits.allTemplates) {
     return NextResponse.json({ error: 'That background is a Pro feature.' }, { status: 403 });
+  }
+  // Animated exports are a Pro (batch) feature.
+  const isAnimation = (parsed.data.animationUrls ?? []).length > 0;
+  if (isAnimation && !account.plan.limits.batch) {
+    return NextResponse.json({ error: 'Animated exports are a Pro feature.' }, { status: 403 });
   }
   const finiteCredits = account.plan.limits.capturesPerMonth >= 0;
   if (finiteCredits && account.credits <= 0) {

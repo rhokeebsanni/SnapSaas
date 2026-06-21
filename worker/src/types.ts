@@ -25,8 +25,14 @@ export interface CaptureSettings {
   watermark: boolean;
   /** Drop-shadow depth (default 'medium'). */
   shadow?: ShadowPreset;
+  /** Override the preset shadow opacity (0–100). */
+  shadowOpacity?: number;
+  /** Angle the shadow falls: 0=up, 90=right, 180=down (default). */
+  shadowDirection?: number;
   /** Soft colored glow behind the device, tinted to match the bg (default off). */
   glow?: boolean;
+  /** Drop the device frame and place the bare screenshot (default false). */
+  hideMockup?: boolean;
   /** 3D perspective tilt (default 'none'). */
   tilt?: TiltPreset;
   /** Browser chrome styling (default 'light'). Only affects the browser frame. */

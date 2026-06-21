@@ -394,6 +394,61 @@ export function Editor({
                   preview: <ShadowThumb shadow={o.value} />,
                 }))}
               />
+              {s.shadow !== 'none' && (
+                <div className="mt-3 space-y-3">
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground flex items-center justify-between text-xs">
+                      <span>Opacity</span>
+                      <span className="font-mono tabular-nums">
+                        {s.shadowOpacity ?? 'Auto'}
+                        {s.shadowOpacity !== null && '%'}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[s.shadowOpacity ?? 45]}
+                      onValueChange={(v: number[]) => onEdit(s.setShadowOpacity)(v[0])}
+                      min={0}
+                      max={100}
+                      step={5}
+                      aria-label="Shadow opacity"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-muted-foreground flex items-center justify-between text-xs">
+                      <span>Direction</span>
+                      <span className="font-mono tabular-nums">{s.shadowDirection}°</span>
+                    </div>
+                    <Slider
+                      value={[s.shadowDirection]}
+                      onValueChange={(v: number[]) => onEdit(s.setShadowDirection)(v[0])}
+                      min={0}
+                      max={360}
+                      step={15}
+                      aria-label="Shadow direction"
+                    />
+                  </div>
+                </div>
+              )}
+            </Control>
+
+            <Control label="Hide mockup" hint="Export just the screenshot, without the frame.">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={s.hideMockup}
+                onClick={() => onEdit(s.setHideMockup)(!s.hideMockup)}
+                className={cn(
+                  'relative inline-flex h-7 w-12 items-center rounded-full border transition-colors',
+                  s.hideMockup ? 'bg-brand border-brand' : 'bg-muted/40',
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block size-5 rounded-full bg-white shadow transition-transform',
+                    s.hideMockup ? 'translate-x-6' : 'translate-x-1',
+                  )}
+                />
+              </button>
             </Control>
 
             <Control label="3D tilt">
@@ -570,6 +625,9 @@ export function Editor({
                   windowStyle={s.windowStyle}
                   border={s.border}
                   borderWidth={s.borderWidth}
+                  shadowOpacity={s.shadowOpacity}
+                  shadowDirection={s.shadowDirection}
+                  hideMockup={s.hideMockup}
                   watermark={watermark}
                   customGradient={s.background === 'custom' ? s.customGradient : undefined}
                 />

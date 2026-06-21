@@ -209,6 +209,14 @@ async function iphoneFrame(shot: Buffer, scale: number): Promise<FramedDevice> {
   return { buffer, width: bezelW, height: bezelH, cornerRadius: bezelRadius };
 }
 
+/** Hide-mockup: the bare screenshot with softly rounded corners, no chrome. */
+export async function bareScreenshot(shot: Buffer, scale: number): Promise<FramedDevice> {
+  const { width: w, height: h } = await dimensions(shot);
+  const radius = Math.round(10 * scale);
+  const buffer = await roundCorners(shot, w, h, radius);
+  return { buffer, width: w, height: h, cornerRadius: radius };
+}
+
 export function frameScreenshot(
   shot: Buffer,
   frame: FrameId,

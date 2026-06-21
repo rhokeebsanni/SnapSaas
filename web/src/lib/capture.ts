@@ -23,7 +23,13 @@ export const captureSettingsSchema = z.object({
   padding: z.number().int().min(0).max(400).default(80),
   format: z.enum(['png', 'jpeg', 'webp']).default('png'),
   shadow: z.enum(['none', 'soft', 'medium', 'dramatic']).default('medium'),
+  // Optional shadow fine-tuning. Opacity overrides the preset (0–100). Direction
+  // is the angle the shadow falls, 0=up, 90=right, 180=down (default).
+  shadowOpacity: z.number().int().min(0).max(100).optional(),
+  shadowDirection: z.number().int().min(0).max(360).default(180),
   glow: z.boolean().default(false),
+  // Hide the device frame/chrome and just place the bare screenshot.
+  hideMockup: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
   windowStyle: z
     .enum(['light', 'dark', 'glass', 'glass-dark', 'inset', 'inset-dark'])

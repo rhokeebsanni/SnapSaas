@@ -7,7 +7,7 @@ import {
   renderBackgroundSvg,
   type BackgroundPreset,
 } from '../config/templates';
-import { frameScreenshot } from './frames';
+import { frameScreenshot, bareScreenshot } from './frames';
 
 function escapeXml(value: string): string {
   return value.replace(/[<>&'"]/g, (c) =>
@@ -61,13 +61,15 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
   const scale = settings.scale;
   const px = (v: number) => Math.round(v * scale);
 
-  const framed = await frameScreenshot(
-    shot,
-    settings.frame,
-    scale,
-    hostFromUrl(settings.url),
-    settings.windowStyle ?? 'light',
-  );
+  const framed = settings.hideMockup
+    ? await bareScreenshot(shot, scale)
+    : await frameScreenshot(
+        shot,
+        settings.frame,
+        scale,
+        hostFromUrl(settings.url),
+        settings.windowStyle ?? 'light',
+      );
 
   // Optional 3D tilt (Shots-style). Recompute device box from the result.
   const tiltDeg = TILT_DEGREES[settings.tilt ?? 'none'] ?? 0;
@@ -119,10 +121,17 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
     layers.push({ input: glow, top: 0, left: 0 });
   }
 
-  // Drop shadow: a blurred dark silhouette of the device, offset downward.
-  const [shOffset, shBlur, shOpacity] = SHADOW_PRESETS[settings.shadow ?? 'medium'];
+  // Drop shadow: a blurred dark silhouette of the device, offset in the chosen
+  // direction. Opacity can override the preset; direction is the fall angle
+  // (0=up, 90=right, 180=down).
+  const [shOffset, shBlur, shPresetOpacity] = SHADOW_PRESETS[settings.shadow ?? 'medium'];
+  const shOpacity =
+    settings.shadowOpacity !== undefined ? settings.shadowOpacity / 100 : shPresetOpacity;
   if (shOpacity > 0) {
-    const shadowOffset = px(shOffset);
+    const dist = px(shOffset);
+    const rad = ((settings.shadowDirection ?? 180) * Math.PI) / 180;
+    const dx = Math.round(Math.sin(rad) * dist);
+    const dy = Math.round(-Math.cos(rad) * dist);
     const shadowSigma = Math.max(8, px(shBlur));
     const silhouette = Buffer.from(
       `<svg xmlns="http://www.w3.org/2000/svg" width="${device.width}" height="${device.height}"><rect width="${device.width}" height="${device.height}" rx="${device.cornerRadius}" ry="${device.cornerRadius}" fill="#000000" fill-opacity="${shOpacity}"/></svg>`,
@@ -130,7 +139,7 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
     const shadow = await sharp({
       create: { width: canvasW, height: canvasH, channels: 4, background: '#00000000' },
     })
-      .composite([{ input: silhouette, top: pad + shadowOffset, left: pad }])
+      .composite([{ input: silhouette, top: Math.max(0, pad + dy), left: Math.max(0, pad + dx) }])
       .blur(shadowSigma)
       .png()
       .toBuffer();

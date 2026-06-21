@@ -10,7 +10,10 @@ export const captureSettingsSchema = z.object({
   format: z.enum(['png', 'jpeg', 'webp']).default('png'),
   watermark: z.boolean().default(true),
   shadow: z.enum(['none', 'soft', 'medium', 'dramatic']).default('medium'),
+  shadowOpacity: z.number().min(0).max(100).optional(),
+  shadowDirection: z.number().min(0).max(360).default(180),
   glow: z.boolean().default(false),
+  hideMockup: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
   windowStyle: z
     .enum(['light', 'dark', 'glass', 'glass-dark', 'inset', 'inset-dark'])

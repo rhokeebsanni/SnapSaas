@@ -32,7 +32,10 @@ interface EditorState {
   format: OutputFormat;
   padding: number;
   shadow: ShadowPreset;
+  shadowOpacity: number | null;
+  shadowDirection: number;
   glow: boolean;
+  hideMockup: boolean;
   tilt: TiltPreset;
   windowStyle: WindowStyle;
   border: BorderStyle;
@@ -56,6 +59,9 @@ interface EditorState {
   setPadding: (padding: number) => void;
   setShadow: (shadow: ShadowPreset) => void;
   setGlow: (glow: boolean) => void;
+  setShadowOpacity: (shadowOpacity: number | null) => void;
+  setShadowDirection: (shadowDirection: number) => void;
+  setHideMockup: (hideMockup: boolean) => void;
   setTilt: (tilt: TiltPreset) => void;
   setWindowStyle: (windowStyle: WindowStyle) => void;
   setBorder: (border: BorderStyle) => void;
@@ -85,7 +91,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   format: 'png',
   padding: 80,
   shadow: 'medium',
+  shadowOpacity: null,
+  shadowDirection: 180,
   glow: false,
+  hideMockup: false,
   tilt: 'none',
   windowStyle: 'light',
   border: 'none',
@@ -109,6 +118,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setPadding: (padding) => set({ padding }),
   setShadow: (shadow) => set({ shadow }),
   setGlow: (glow) => set({ glow }),
+  setShadowOpacity: (shadowOpacity) => set({ shadowOpacity }),
+  setShadowDirection: (shadowDirection) => set({ shadowDirection }),
+  setHideMockup: (hideMockup) => set({ hideMockup }),
   setTilt: (tilt) => set({ tilt }),
   setWindowStyle: (windowStyle) => set({ windowStyle }),
   setBorder: (border) => set({ border }),
@@ -134,7 +146,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       format,
       padding,
       shadow,
+      shadowOpacity,
+      shadowDirection,
       glow,
+      hideMockup,
       tilt,
       windowStyle,
       border,
@@ -171,12 +186,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           format,
           padding,
           shadow,
+          shadowDirection,
           glow,
+          hideMockup,
           tilt,
           windowStyle,
           border,
           borderWidth,
           scrollY,
+          ...(shadowOpacity !== null ? { shadowOpacity } : {}),
           ...(outputWidth ? { outputWidth } : {}),
           ...(outputHeight ? { outputHeight } : {}),
           ...(background === 'custom' ? { customGradient } : {}),

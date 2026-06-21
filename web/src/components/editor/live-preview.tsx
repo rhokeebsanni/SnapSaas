@@ -15,12 +15,28 @@ import { cn } from '@/lib/utils';
  * The worker renders padding in absolute pixels at full scale; here we scale it
  * down proportionally to the preview width so the relationship stays truthful.
  */
-const SHADOW_CSS: Record<ShadowPreset, string> = {
-  none: 'none',
-  soft: '0 10px 30px -12px rgba(0,0,0,0.35)',
-  medium: '0 22px 50px -16px rgba(0,0,0,0.45)',
-  dramatic: '0 40px 80px -20px rgba(0,0,0,0.6)',
+// [distance, blur, spread, baseOpacity] per depth — combined with direction +
+// opacity overrides to build the boxShadow.
+const SHADOW_DEPTH: Record<ShadowPreset, [number, number, number, number]> = {
+  none: [0, 0, 0, 0],
+  soft: [10, 30, -12, 0.35],
+  medium: [22, 50, -16, 0.45],
+  dramatic: [40, 80, -20, 0.6],
 };
+
+function shadowCss(
+  shadow: ShadowPreset,
+  direction: number,
+  opacityOverride: number | null,
+): string {
+  const [dist, blur, spread, baseOpacity] = SHADOW_DEPTH[shadow];
+  if (dist === 0 && shadow === 'none') return 'none';
+  const rad = (direction * Math.PI) / 180;
+  const dx = Math.round(Math.sin(rad) * dist);
+  const dy = Math.round(-Math.cos(rad) * dist);
+  const opacity = opacityOverride !== null ? opacityOverride / 100 : baseOpacity;
+  return `${dx}px ${dy}px ${blur}px ${spread}px rgba(0,0,0,${opacity})`;
+}
 
 const TILT_TRANSFORM: Record<TiltPreset, string> = {
   none: 'none',
@@ -55,6 +71,9 @@ export function LivePreview({
   windowStyle,
   border,
   borderWidth = 4,
+  shadowOpacity = null,
+  shadowDirection = 180,
+  hideMockup = false,
   watermark,
   customGradient,
 }: {
@@ -68,6 +87,9 @@ export function LivePreview({
   windowStyle: WindowStyle;
   border?: 'none' | 'light' | 'dark';
   borderWidth?: number;
+  shadowOpacity?: number | null;
+  shadowDirection?: number;
+  hideMockup?: boolean;
   watermark?: boolean;
   customGradient?: { colors: string[]; angle: number };
 }) {
@@ -89,6 +111,19 @@ export function LivePreview({
   // composition (device + its padding) by HEIGHT and let width follow: it zooms
   // out until the entire padded frame fits, and the padding stays proportional.
   const isPhone = frame === 'iphone';
+
+  const deviceShadow = shadowCss(shadow, shadowDirection, shadowOpacity);
+  // Border drawn with an outline so it hugs the rounded frame edge without
+  // affecting layout. Scaled down to match the mini preview.
+  const borderStyle =
+    border && border !== 'none'
+      ? {
+          outline: `${Math.max(1, borderWidth * 0.5)}px solid ${
+            border === 'dark' ? '#0b0b0f' : '#ffffff'
+          }`,
+          outlineOffset: `-${Math.max(1, borderWidth * 0.5)}px`,
+        }
+      : {};
 
   return (
     <div
@@ -126,30 +161,31 @@ export function LivePreview({
             style={{ background: glowColor }}
           />
         )}
-        <DeviceFrame
-          variant={frame}
-          url={url || 'yoursite.com'}
-          windowStyle={windowStyle}
-          className={cn(
-            'transition-shadow duration-300',
-            isPhone ? 'h-full w-auto max-w-none' : 'w-full',
-          )}
-          style={{
-            boxShadow: SHADOW_CSS[shadow],
-            // Border drawn with an outline so it hugs the rounded frame edge
-            // without affecting layout. Scaled down to match the mini preview.
-            ...(border && border !== 'none'
-              ? {
-                  outline: `${Math.max(1, borderWidth * 0.5)}px solid ${
-                    border === 'dark' ? '#0b0b0f' : '#ffffff'
-                  }`,
-                  outlineOffset: `-${Math.max(1, borderWidth * 0.5)}px`,
-                }
-              : {}),
-          }}
-        >
-          <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
-        </DeviceFrame>
+        {hideMockup ? (
+          // Hide-mockup: just the bare screenshot, softly rounded.
+          <div
+            className={cn(
+              'overflow-hidden rounded-xl transition-shadow duration-300',
+              isPhone ? 'aspect-[9/16] h-full w-auto' : 'aspect-[16/10] w-full',
+            )}
+            style={{ boxShadow: deviceShadow, ...borderStyle }}
+          >
+            <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
+          </div>
+        ) : (
+          <DeviceFrame
+            variant={frame}
+            url={url || 'yoursite.com'}
+            windowStyle={windowStyle}
+            className={cn(
+              'transition-shadow duration-300',
+              isPhone ? 'h-full w-auto max-w-none' : 'w-full',
+            )}
+            style={{ boxShadow: deviceShadow, ...borderStyle }}
+          >
+            <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
+          </DeviceFrame>
+        )}
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ interface DeviceFrameProps extends React.ComponentProps<'div'> {
   /** Address bar label for the browser frame. */
   url?: string;
   /** Browser chrome styling (browser variant only). */
-  windowStyle?: 'light' | 'dark';
+  windowStyle?: 'light' | 'dark' | 'glass' | 'glass-dark' | 'inset' | 'inset-dark';
   children?: React.ReactNode;
 }
 
@@ -61,12 +61,40 @@ export function DeviceFrame({
   }
 
   // Default: browser window chrome.
-  const dark = windowStyle === 'dark';
+  const dark =
+    windowStyle === 'dark' || windowStyle === 'glass-dark' || windowStyle === 'inset-dark';
+  const glass = windowStyle === 'glass' || windowStyle === 'glass-dark';
+  const inset = windowStyle === 'inset' || windowStyle === 'inset-dark';
+
+  // Inset: no toolbar — the screenshot is matted inside a colored card.
+  if (inset) {
+    return (
+      <div
+        className={cn(
+          'overflow-hidden rounded-xl border p-2.5 shadow-2xl ring-1 ring-black/5',
+          dark ? 'border-neutral-800 bg-neutral-900' : 'border-neutral-200 bg-white',
+          className,
+        )}
+        {...props}
+      >
+        <div className="bg-background aspect-[16/10] w-full overflow-hidden rounded-lg">
+          {children}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
         'overflow-hidden rounded-xl border shadow-2xl ring-1 ring-black/5',
-        dark ? 'border-neutral-700 bg-neutral-900' : 'bg-card',
+        glass
+          ? dark
+            ? 'border-white/10 bg-neutral-900/50 backdrop-blur-md'
+            : 'border-white/40 bg-white/40 backdrop-blur-md'
+          : dark
+            ? 'border-neutral-700 bg-neutral-900'
+            : 'bg-card',
         className,
       )}
       {...props}
@@ -74,7 +102,13 @@ export function DeviceFrame({
       <div
         className={cn(
           'flex items-center gap-2 border-b px-3 py-2.5',
-          dark ? 'border-neutral-700 bg-neutral-800' : 'bg-muted/60',
+          glass
+            ? dark
+              ? 'border-white/10 bg-white/5'
+              : 'border-white/30 bg-white/20'
+            : dark
+              ? 'border-neutral-700 bg-neutral-800'
+              : 'bg-muted/60',
         )}
       >
         <div className="flex gap-1.5">
@@ -85,7 +119,11 @@ export function DeviceFrame({
         <div
           className={cn(
             'mx-auto flex h-6 w-full max-w-sm items-center justify-center rounded-md px-3 text-xs',
-            dark ? 'bg-neutral-950 text-neutral-400' : 'bg-background text-muted-foreground',
+            glass
+              ? 'bg-white/20 text-white/80'
+              : dark
+                ? 'bg-neutral-950 text-neutral-400'
+                : 'bg-background text-muted-foreground',
           )}
         >
           {url}

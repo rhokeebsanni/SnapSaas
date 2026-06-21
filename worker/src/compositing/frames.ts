@@ -38,6 +38,39 @@ async function dimensions(buf: Buffer): Promise<{ width: number; height: number 
   return { width: meta.width ?? 0, height: meta.height ?? 0 };
 }
 
+/** Visual config per browser window style. */
+function windowStyleConfig(style: WindowStyle) {
+  const dark = style === 'dark' || style === 'glass-dark' || style === 'inset-dark';
+  const glass = style === 'glass' || style === 'glass-dark';
+  const inset = style === 'inset' || style === 'inset-dark';
+  return {
+    dark,
+    glass,
+    inset,
+    // Toolbar / card fill. Glass fills are translucent so the background shows
+    // through; opaque otherwise.
+    chrome: glass
+      ? dark
+        ? 'rgba(20,21,24,0.55)'
+        : 'rgba(255,255,255,0.45)'
+      : dark
+        ? '#2b2d31'
+        : '#edeef1',
+    pill: glass
+      ? dark
+        ? 'rgba(255,255,255,0.10)'
+        : 'rgba(255,255,255,0.55)'
+      : dark
+        ? '#1c1d20'
+        : '#ffffff',
+    pillText: dark ? '#9ca3af' : '#6b7280',
+    // Body fill behind the screenshot. Glass = transparent (bg bleeds through).
+    baseBg: glass ? '#00000000' : dark ? '#1c1d20' : '#ffffff',
+    // Inset matte color (the band around the screenshot for inset styles).
+    matte: dark ? '#16171b' : '#ffffff',
+  };
+}
+
 async function browserFrame(
   shot: Buffer,
   scale: number,
@@ -46,31 +79,50 @@ async function browserFrame(
 ): Promise<FramedDevice> {
   const px = (v: number) => Math.round(v * scale);
   const { width: w, height: h } = await dimensions(shot);
-  const toolbar = px(38);
   const radius = px(12);
-  const deviceH = toolbar + h;
+  const cfg = windowStyleConfig(windowStyle);
 
-  const dark = windowStyle === 'dark';
-  const chrome = dark ? '#2b2d31' : '#edeef1';
-  const pill = dark ? '#1c1d20' : '#ffffff';
-  const pillText = dark ? '#9ca3af' : '#6b7280';
-  const baseBg = dark ? '#1c1d20' : '#ffffff';
+  // Inset styles: no browser toolbar — the screenshot is matted inside a solid
+  // colored card with rounded inner corners (a framed-photo look).
+  if (cfg.inset) {
+    const margin = px(14);
+    const innerRadius = px(8);
+    const cardW = w + margin * 2;
+    const cardH = h + margin * 2;
+    const roundedShot = await roundCorners(shot, w, h, innerRadius);
+    const card = await sharp({
+      create: { width: cardW, height: cardH, channels: 4, background: cfg.matte },
+    })
+      .composite([{ input: roundedShot, top: margin, left: margin }])
+      .png()
+      .toBuffer();
+    const buffer = await roundCorners(card, cardW, cardH, radius);
+    return { buffer, width: cardW, height: cardH, cornerRadius: radius };
+  }
+
+  const toolbar = px(38);
+  const deviceH = toolbar + h;
 
   const dot = (cx: number, color: string) =>
     `<circle cx="${cx}" cy="${toolbar / 2}" r="${px(6)}" fill="${color}"/>`;
   const pillW = Math.min(w * 0.5, px(420));
   const pillX = (w - pillW) / 2;
+  // A faint top highlight sells the glass look.
+  const glassEdge = cfg.glass
+    ? `<rect width="${w}" height="${toolbar}" fill="url(#sheen)"/><defs><linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.35)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>`
+    : '';
   const toolbarSvg = Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${toolbar}">
-      <rect width="${w}" height="${toolbar}" fill="${chrome}"/>
+      <rect width="${w}" height="${toolbar}" fill="${cfg.chrome}"/>
+      ${glassEdge}
       ${dot(px(22), '#ff5f57')}${dot(px(42), '#febc2e')}${dot(px(62), '#28c840')}
-      <rect x="${pillX}" y="${toolbar * 0.26}" width="${pillW}" height="${toolbar * 0.48}" rx="${px(7)}" fill="${pill}"/>
-      <text x="${w / 2}" y="${toolbar / 2}" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="${px(13)}" fill="${pillText}" text-anchor="middle" dominant-baseline="central">${escapeXml(url)}</text>
+      <rect x="${pillX}" y="${toolbar * 0.26}" width="${pillW}" height="${toolbar * 0.48}" rx="${px(7)}" fill="${cfg.pill}"/>
+      <text x="${w / 2}" y="${toolbar / 2}" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="${px(13)}" fill="${cfg.pillText}" text-anchor="middle" dominant-baseline="central">${escapeXml(url)}</text>
     </svg>`,
   );
 
   const composed = await sharp({
-    create: { width: w, height: deviceH, channels: 4, background: baseBg },
+    create: { width: w, height: deviceH, channels: 4, background: cfg.baseBg },
   })
     .composite([
       { input: toolbarSvg, top: 0, left: 0 },

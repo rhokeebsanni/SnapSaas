@@ -6,7 +6,7 @@ export type OutputFormat = 'png' | 'jpeg' | 'webp';
 export type OutputScale = 1 | 2 | 3;
 export type ShadowPreset = 'none' | 'soft' | 'medium' | 'dramatic';
 export type TiltPreset = 'none' | 'left' | 'right';
-export type WindowStyle = 'light' | 'dark';
+export type WindowStyle = 'light' | 'dark' | 'glass' | 'glass-dark' | 'inset' | 'inset-dark';
 export type BorderStyle = 'none' | 'light' | 'dark';
 
 /**
@@ -25,7 +25,9 @@ export const captureSettingsSchema = z.object({
   shadow: z.enum(['none', 'soft', 'medium', 'dramatic']).default('medium'),
   glow: z.boolean().default(false),
   tilt: z.enum(['none', 'left', 'right']).default('none'),
-  windowStyle: z.enum(['light', 'dark']).default('light'),
+  windowStyle: z
+    .enum(['light', 'dark', 'glass', 'glass-dark', 'inset', 'inset-dark'])
+    .default('light'),
   // A border drawn around the framed device. Width/radius in logical px.
   border: z.enum(['none', 'light', 'dark']).default('none'),
   borderWidth: z.number().int().min(1).max(24).default(4),

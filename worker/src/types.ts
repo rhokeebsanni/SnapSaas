@@ -8,7 +8,7 @@ export type ShadowPreset = 'none' | 'soft' | 'medium' | 'dramatic';
 /** 3D perspective tilt presets (Shots-style). */
 export type TiltPreset = 'none' | 'left' | 'right';
 /** Browser-frame chrome styling. */
-export type WindowStyle = 'light' | 'dark';
+export type WindowStyle = 'light' | 'dark' | 'glass' | 'glass-dark' | 'inset' | 'inset-dark';
 
 export interface CaptureSettings {
   /** Public http(s) URL to capture. Validated before reaching the worker. */

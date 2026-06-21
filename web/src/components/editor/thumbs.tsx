@@ -68,20 +68,57 @@ export function TiltThumb({ tilt }: { tilt: TiltPreset }) {
 }
 
 export function WindowThumb({ style }: { style: WindowStyle }) {
-  const dark = style === 'dark';
+  const dark = style === 'dark' || style === 'glass-dark' || style === 'inset-dark';
+  const glass = style === 'glass' || style === 'glass-dark';
+  const inset = style === 'inset' || style === 'inset-dark';
+
+  // A faint checker hint behind glass so the translucency reads.
+  const shell = inset
+    ? dark
+      ? 'border-neutral-800 bg-neutral-900'
+      : 'border-neutral-300 bg-white'
+    : glass
+      ? dark
+        ? 'border-white/15 bg-neutral-800/50'
+        : 'border-white/50 bg-white/40'
+      : dark
+        ? 'border-neutral-700 bg-neutral-900'
+        : 'border-neutral-300 bg-white';
+
+  if (inset) {
+    return (
+      <div className={cn('h-8 w-12 rounded-[4px] border p-[3px]', shell)}>
+        <div
+          className={cn('h-full w-full rounded-[2px]', dark ? 'bg-neutral-700' : 'bg-neutral-200')}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        'h-8 w-12 overflow-hidden rounded-[4px] border',
-        dark ? 'border-neutral-700 bg-neutral-900' : 'border-neutral-300 bg-white',
+        'from-brand/30 to-brand-2/30 h-8 w-12 overflow-hidden rounded-[4px] border',
+        glass && 'bg-gradient-to-br',
+        shell,
       )}
     >
-      <div className={cn('flex h-[8px] items-center gap-[2px] px-[3px]', dark && 'bg-neutral-800')}>
+      <div
+        className={cn(
+          'flex h-[8px] items-center gap-[2px] px-[3px]',
+          glass ? 'bg-white/20' : dark ? 'bg-neutral-800' : 'bg-neutral-100',
+        )}
+      >
         <span className="size-[2.5px] rounded-full bg-red-400" />
         <span className="size-[2.5px] rounded-full bg-yellow-400" />
         <span className="size-[2.5px] rounded-full bg-green-400" />
       </div>
-      <div className={cn('h-full w-full', dark ? 'bg-neutral-900' : 'bg-neutral-50')} />
+      <div
+        className={cn(
+          'h-full w-full',
+          glass ? 'bg-transparent' : dark ? 'bg-neutral-900' : 'bg-neutral-50',
+        )}
+      />
     </div>
   );
 }

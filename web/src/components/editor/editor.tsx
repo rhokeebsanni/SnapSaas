@@ -69,6 +69,10 @@ const TILT_OPTIONS: { value: TiltPreset; label: string }[] = [
 const WINDOW_OPTIONS: { value: WindowStyle; label: string }[] = [
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
+  { value: 'glass', label: 'Glass' },
+  { value: 'glass-dark', label: 'Glass Dark' },
+  { value: 'inset', label: 'Inset' },
+  { value: 'inset-dark', label: 'Inset Dark' },
 ];
 
 const BORDER_OPTIONS: { value: BorderStyle; label: string }[] = [
@@ -409,7 +413,7 @@ export function Editor({
                 <ThumbPicker
                   value={s.windowStyle}
                   onChange={onEdit(s.setWindowStyle)}
-                  columns={2}
+                  columns={3}
                   options={WINDOW_OPTIONS.map((o) => ({
                     ...o,
                     preview: <WindowThumb style={o.value} />,

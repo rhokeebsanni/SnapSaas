@@ -64,7 +64,9 @@ export function TemplateGallery({
                     padding={Math.round(t.settings.padding / 3)}
                     shadow={t.settings.shadow}
                     glow={t.settings.glow}
-                    tilt={t.settings.tilt}
+                    rotateX={t.settings.rotateX}
+                    rotateY={t.settings.rotateY}
+                    rotateZ={t.settings.rotateZ}
                     windowStyle={t.settings.windowStyle}
                   />
                 </div>

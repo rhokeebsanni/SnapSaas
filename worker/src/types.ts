@@ -5,8 +5,6 @@ export type OutputScale = 1 | 2 | 3;
 
 /** Drop-shadow depth presets. */
 export type ShadowPreset = 'none' | 'soft' | 'medium' | 'dramatic';
-/** 3D perspective tilt presets (Shots-style). */
-export type TiltPreset = 'none' | 'left' | 'right';
 /** Browser-frame chrome styling. */
 export type WindowStyle = 'light' | 'dark' | 'glass' | 'glass-dark' | 'inset' | 'inset-dark';
 
@@ -33,8 +31,10 @@ export interface CaptureSettings {
   glow?: boolean;
   /** Drop the device frame and place the bare screenshot (default false). */
   hideMockup?: boolean;
-  /** 3D perspective tilt (default 'none'). */
-  tilt?: TiltPreset;
+  /** 3D rotation in degrees: X tips, Y turns, Z spins (default 0). */
+  rotateX?: number;
+  rotateY?: number;
+  rotateZ?: number;
   /** Browser chrome styling (default 'light'). Only affects the browser frame. */
   windowStyle?: WindowStyle;
   /** Border drawn around the framed device (default 'none'). */
@@ -61,13 +61,6 @@ export const SHADOW_PRESETS: Record<ShadowPreset, [number, number, number]> = {
   soft: [14, 18, 0.28],
   medium: [22, 26, 0.38],
   dramatic: [38, 44, 0.5],
-};
-
-/** Tilt rotation in degrees about the Y axis (perspective applied at render). */
-export const TILT_DEGREES: Record<TiltPreset, number> = {
-  none: 0,
-  left: -18,
-  right: 18,
 };
 
 export interface RenderOutput {

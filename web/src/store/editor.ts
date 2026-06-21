@@ -8,7 +8,6 @@ import type {
   OutputFormat,
   OutputScale,
   ShadowPreset,
-  TiltPreset,
   WindowStyle,
 } from '@/lib/capture';
 
@@ -36,7 +35,9 @@ interface EditorState {
   shadowDirection: number;
   glow: boolean;
   hideMockup: boolean;
-  tilt: TiltPreset;
+  rotateX: number;
+  rotateY: number;
+  rotateZ: number;
   windowStyle: WindowStyle;
   border: BorderStyle;
   borderWidth: number;
@@ -62,7 +63,9 @@ interface EditorState {
   setShadowOpacity: (shadowOpacity: number | null) => void;
   setShadowDirection: (shadowDirection: number) => void;
   setHideMockup: (hideMockup: boolean) => void;
-  setTilt: (tilt: TiltPreset) => void;
+  setRotateX: (rotateX: number) => void;
+  setRotateY: (rotateY: number) => void;
+  setRotateZ: (rotateZ: number) => void;
   setWindowStyle: (windowStyle: WindowStyle) => void;
   setBorder: (border: BorderStyle) => void;
   setBorderWidth: (borderWidth: number) => void;
@@ -95,7 +98,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   shadowDirection: 180,
   glow: false,
   hideMockup: false,
-  tilt: 'none',
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
   windowStyle: 'light',
   border: 'none',
   borderWidth: 4,
@@ -121,7 +126,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setShadowOpacity: (shadowOpacity) => set({ shadowOpacity }),
   setShadowDirection: (shadowDirection) => set({ shadowDirection }),
   setHideMockup: (hideMockup) => set({ hideMockup }),
-  setTilt: (tilt) => set({ tilt }),
+  setRotateX: (rotateX) => set({ rotateX }),
+  setRotateY: (rotateY) => set({ rotateY }),
+  setRotateZ: (rotateZ) => set({ rotateZ }),
   setWindowStyle: (windowStyle) => set({ windowStyle }),
   setBorder: (border) => set({ border }),
   setBorderWidth: (borderWidth) => set({ borderWidth }),
@@ -150,7 +157,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       shadowDirection,
       glow,
       hideMockup,
-      tilt,
+      rotateX,
+      rotateY,
+      rotateZ,
       windowStyle,
       border,
       borderWidth,
@@ -189,7 +198,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           shadowDirection,
           glow,
           hideMockup,
-          tilt,
+          rotateX,
+          rotateY,
+          rotateZ,
           windowStyle,
           border,
           borderWidth,

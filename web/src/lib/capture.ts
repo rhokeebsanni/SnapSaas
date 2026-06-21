@@ -5,7 +5,6 @@ export type CaptureMode = 'full' | 'viewport';
 export type OutputFormat = 'png' | 'jpeg' | 'webp';
 export type OutputScale = 1 | 2 | 3;
 export type ShadowPreset = 'none' | 'soft' | 'medium' | 'dramatic';
-export type TiltPreset = 'none' | 'left' | 'right';
 export type WindowStyle = 'light' | 'dark' | 'glass' | 'glass-dark' | 'inset' | 'inset-dark';
 export type BorderStyle = 'none' | 'light' | 'dark';
 
@@ -30,7 +29,10 @@ export const captureSettingsSchema = z.object({
   glow: z.boolean().default(false),
   // Hide the device frame/chrome and just place the bare screenshot.
   hideMockup: z.boolean().default(false),
-  tilt: z.enum(['none', 'left', 'right']).default('none'),
+  // 3D rotation in degrees. X tips top/bottom, Y turns left/right, Z spins.
+  rotateX: z.number().int().min(-60).max(60).default(0),
+  rotateY: z.number().int().min(-60).max(60).default(0),
+  rotateZ: z.number().int().min(-180).max(180).default(0),
   windowStyle: z
     .enum(['light', 'dark', 'glass', 'glass-dark', 'inset', 'inset-dark'])
     .default('light'),

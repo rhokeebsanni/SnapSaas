@@ -26,13 +26,7 @@ import { MobileStudio } from '@/components/editor/mobile-studio';
 import { Section } from '@/components/editor/section';
 import { Segmented } from '@/components/editor/segmented';
 import { ThumbPicker } from '@/components/editor/thumb-picker';
-import {
-  BorderThumb,
-  FrameThumb,
-  ShadowThumb,
-  TiltThumb,
-  WindowThumb,
-} from '@/components/editor/thumbs';
+import { BorderThumb, FrameThumb, ShadowThumb, WindowThumb } from '@/components/editor/thumbs';
 import { Slider } from '@/components/ui/slider';
 import { BACKGROUNDS, FRAMES, PADDING_PRESETS } from '@/lib/templates';
 import { useEditorStore } from '@/store/editor';
@@ -42,7 +36,6 @@ import type {
   OutputFormat,
   OutputScale,
   ShadowPreset,
-  TiltPreset,
   WindowStyle,
 } from '@/lib/capture';
 import { cn } from '@/lib/utils';
@@ -58,12 +51,6 @@ const SHADOW_OPTIONS: { value: ShadowPreset; label: string }[] = [
   { value: 'soft', label: 'Soft' },
   { value: 'medium', label: 'Medium' },
   { value: 'dramatic', label: 'Bold' },
-];
-
-const TILT_OPTIONS: { value: TiltPreset; label: string }[] = [
-  { value: 'none', label: 'Flat' },
-  { value: 'left', label: 'Left' },
-  { value: 'right', label: 'Right' },
 ];
 
 const WINDOW_OPTIONS: { value: WindowStyle; label: string }[] = [
@@ -451,16 +438,47 @@ export function Editor({
               </button>
             </Control>
 
-            <Control label="3D tilt">
-              <ThumbPicker
-                value={s.tilt}
-                onChange={onEdit(s.setTilt)}
-                columns={3}
-                options={TILT_OPTIONS.map((o) => ({
-                  ...o,
-                  preview: <TiltThumb tilt={o.value} />,
-                }))}
-              />
+            <Control
+              label="3D rotate"
+              hint="Tip (X), turn (Y), spin (Z). Preview is true 3D; export approximates."
+            >
+              <div className="space-y-3">
+                {(
+                  [
+                    ['X', s.rotateX, s.setRotateX, 60],
+                    ['Y', s.rotateY, s.setRotateY, 60],
+                    ['Z', s.rotateZ, s.setRotateZ, 180],
+                  ] as const
+                ).map(([axis, val, setter, range]) => (
+                  <div key={axis} className="space-y-1">
+                    <div className="text-muted-foreground flex items-center justify-between text-xs">
+                      <span>Rotate {axis}</span>
+                      <span className="font-mono tabular-nums">{val}°</span>
+                    </div>
+                    <Slider
+                      value={[val]}
+                      onValueChange={(v: number[]) => onEdit(setter)(v[0])}
+                      min={-range}
+                      max={range}
+                      step={1}
+                      aria-label={`Rotate ${axis}`}
+                    />
+                  </div>
+                ))}
+                {(s.rotateX !== 0 || s.rotateY !== 0 || s.rotateZ !== 0) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onEdit(s.setRotateX)(0);
+                      s.setRotateY(0);
+                      s.setRotateZ(0);
+                    }}
+                    className="text-muted-foreground hover:text-foreground text-xs underline-offset-2 hover:underline"
+                  >
+                    Reset rotation
+                  </button>
+                )}
+              </div>
             </Control>
 
             {showWindowStyle && (
@@ -621,7 +639,9 @@ export function Editor({
                   padding={s.padding}
                   shadow={s.shadow}
                   glow={s.glow}
-                  tilt={s.tilt}
+                  rotateX={s.rotateX}
+                  rotateY={s.rotateY}
+                  rotateZ={s.rotateZ}
                   windowStyle={s.windowStyle}
                   border={s.border}
                   borderWidth={s.borderWidth}

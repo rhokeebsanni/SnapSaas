@@ -1,4 +1,4 @@
-import type { CaptureMode, FrameId, ShadowPreset, TiltPreset, WindowStyle } from '@/lib/capture';
+import type { CaptureMode, FrameId, ShadowPreset, WindowStyle } from '@/lib/capture';
 
 /**
  * One-click style presets. A template bundles a complete look (frame +
@@ -17,7 +17,9 @@ export interface EditorTemplate {
     padding: number;
     shadow: ShadowPreset;
     glow: boolean;
-    tilt: TiltPreset;
+    rotateX: number;
+    rotateY: number;
+    rotateZ: number;
     windowStyle: WindowStyle;
   };
 }
@@ -34,7 +36,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 80,
       shadow: 'soft',
       glow: false,
-      tilt: 'none',
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
       windowStyle: 'light',
     },
   },
@@ -49,7 +53,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 96,
       shadow: 'dramatic',
       glow: false,
-      tilt: 'none',
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
       windowStyle: 'dark',
     },
   },
@@ -64,7 +70,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 110,
       shadow: 'medium',
       glow: true,
-      tilt: 'none',
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
       windowStyle: 'light',
     },
   },
@@ -79,7 +87,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 120,
       shadow: 'dramatic',
       glow: false,
-      tilt: 'left',
+      rotateX: 4,
+      rotateY: 18,
+      rotateZ: 0,
       windowStyle: 'light',
     },
   },
@@ -94,7 +104,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 90,
       shadow: 'medium',
       glow: false,
-      tilt: 'none',
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
       windowStyle: 'light',
     },
   },
@@ -109,7 +121,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 80,
       shadow: 'medium',
       glow: true,
-      tilt: 'none',
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
       windowStyle: 'light',
     },
   },
@@ -124,7 +138,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 130,
       shadow: 'dramatic',
       glow: true,
-      tilt: 'right',
+      rotateX: 4,
+      rotateY: -18,
+      rotateZ: 0,
       windowStyle: 'dark',
     },
   },
@@ -139,7 +155,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 120,
       shadow: 'dramatic',
       glow: true,
-      tilt: 'left',
+      rotateX: 4,
+      rotateY: 18,
+      rotateZ: 0,
       windowStyle: 'dark',
     },
   },
@@ -154,7 +172,9 @@ export const EDITOR_TEMPLATES: EditorTemplate[] = [
       padding: 100,
       shadow: 'dramatic',
       glow: true,
-      tilt: 'none',
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
       windowStyle: 'light',
     },
   },

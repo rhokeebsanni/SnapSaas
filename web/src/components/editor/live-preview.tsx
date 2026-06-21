@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import { DeviceFrame, MockSite } from '@/components/device-frame';
 import { getBackground, glowColorForCss } from '@/lib/templates';
-import type { ShadowPreset, TiltPreset, WindowStyle, FrameId } from '@/lib/capture';
+import type { ShadowPreset, WindowStyle, FrameId } from '@/lib/capture';
 import { cn } from '@/lib/utils';
 
 /**
@@ -38,11 +38,10 @@ function shadowCss(
   return `${dx}px ${dy}px ${blur}px ${spread}px rgba(0,0,0,${opacity})`;
 }
 
-const TILT_TRANSFORM: Record<TiltPreset, string> = {
-  none: 'none',
-  left: 'perspective(1400px) rotateY(14deg) rotateX(3deg)',
-  right: 'perspective(1400px) rotateY(-14deg) rotateX(3deg)',
-};
+function rotateTransform(rx: number, ry: number, rz: number): string {
+  if (!rx && !ry && !rz) return 'none';
+  return `perspective(1400px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+}
 
 const TONE_BY_BG: Record<string, 'violet' | 'teal' | 'amber' | 'rose'> = {
   'violet-dream': 'violet',
@@ -67,7 +66,9 @@ export function LivePreview({
   padding,
   shadow,
   glow,
-  tilt,
+  rotateX = 0,
+  rotateY = 0,
+  rotateZ = 0,
   windowStyle,
   border,
   borderWidth = 4,
@@ -83,7 +84,9 @@ export function LivePreview({
   padding: number;
   shadow: ShadowPreset;
   glow: boolean;
-  tilt: TiltPreset;
+  rotateX?: number;
+  rotateY?: number;
+  rotateZ?: number;
   windowStyle: WindowStyle;
   border?: 'none' | 'light' | 'dark';
   borderWidth?: number;
@@ -151,7 +154,10 @@ export function LivePreview({
           // whole composition in view. Wide frames stay width-bound.
           isPhone ? 'h-full w-auto' : 'w-full max-w-xl',
         )}
-        style={{ transform: TILT_TRANSFORM[tilt], transformStyle: 'preserve-3d' }}
+        style={{
+          transform: rotateTransform(rotateX, rotateY, rotateZ),
+          transformStyle: 'preserve-3d',
+        }}
       >
         {/* Colored glow behind the device. */}
         {glow && (

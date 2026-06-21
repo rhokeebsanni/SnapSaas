@@ -14,7 +14,9 @@ export const captureSettingsSchema = z.object({
   shadowDirection: z.number().min(0).max(360).default(180),
   glow: z.boolean().default(false),
   hideMockup: z.boolean().default(false),
-  tilt: z.enum(['none', 'left', 'right']).default('none'),
+  rotateX: z.number().min(-60).max(60).default(0),
+  rotateY: z.number().min(-60).max(60).default(0),
+  rotateZ: z.number().min(-180).max(180).default(0),
   windowStyle: z
     .enum(['light', 'dark', 'glass', 'glass-dark', 'inset', 'inset-dark'])
     .default('light'),

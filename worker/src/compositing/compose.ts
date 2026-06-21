@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 
-import { SHADOW_PRESETS, TILT_DEGREES, type CaptureSettings, type RenderOutput } from '../types';
+import { SHADOW_PRESETS, type CaptureSettings, type RenderOutput } from '../types';
 import {
   getBackground,
   glowColorFor,
@@ -33,20 +33,34 @@ function watermarkSvg(width: number, height: number, scale: number): Buffer {
   );
 }
 
-/** Apply a fake-perspective tilt to the framed device via a horizontal shear. */
-async function applyTilt(
+/**
+ * Apply a 3D-ish rotation to the framed device. Z is a true rotation; X and Y
+ * are approximated with shear (Sharp's affine is 2D, so true perspective
+ * foreshortening isn't possible — the live preview uses real CSS 3D, this is a
+ * faithful-enough export). Returns the re-sized buffer.
+ */
+async function apply3D(
   buffer: Buffer,
   width: number,
   height: number,
-  degrees: number,
+  rotateX: number,
+  rotateY: number,
+  rotateZ: number,
 ): Promise<{ buffer: Buffer; width: number; height: number }> {
-  if (!degrees) return { buffer, width, height };
-  // Shear horizontally proportional to the tilt; a positive angle leans right.
-  const shear = Math.tan((degrees * Math.PI) / 180) * 0.5;
+  if (!rotateX && !rotateY && !rotateZ) return { buffer, width, height };
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const cz = Math.cos(rad(rotateZ));
+  const sz = Math.sin(rad(rotateZ));
+  const ky = Math.tan(rad(rotateY)) * 0.5; // horizontal shear from Y turn
+  const kx = Math.tan(rad(rotateX)) * 0.5; // vertical shear from X tip
+  // M = Rz · SYshear · SXshear  →  affine [a, b, c, d]
+  const a = cz * (1 + ky * kx) - sz * kx;
+  const b = cz * ky - sz;
+  const c = sz * (1 + ky * kx) + cz * kx;
+  const d = sz * ky + cz;
   const out = await sharp(buffer)
     .ensureAlpha()
-    // affine matrix [a b c d]: b is the horizontal shear term.
-    .affine([1, shear, 0, 1], { background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .affine([a, b, c, d], { background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
     .toBuffer();
   const meta = await sharp(out).metadata();
@@ -71,13 +85,19 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
         settings.windowStyle ?? 'light',
       );
 
-  // Optional 3D tilt (Shots-style). Recompute device box from the result.
-  const tiltDeg = TILT_DEGREES[settings.tilt ?? 'none'] ?? 0;
-  const tilted = await applyTilt(framed.buffer, framed.width, framed.height, tiltDeg);
+  // Optional 3D rotation (Shots-style). Recompute device box from the result.
+  const rotated = await apply3D(
+    framed.buffer,
+    framed.width,
+    framed.height,
+    settings.rotateX ?? 0,
+    settings.rotateY ?? 0,
+    settings.rotateZ ?? 0,
+  );
   const device = {
-    buffer: tilted.buffer,
-    width: tilted.width,
-    height: tilted.height,
+    buffer: rotated.buffer,
+    width: rotated.width,
+    height: rotated.height,
     cornerRadius: framed.cornerRadius,
   };
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import type { FrameId, ShadowPreset, TiltPreset, WindowStyle } from '@/lib/capture';
+import type { FrameId, ShadowPreset, WindowStyle } from '@/lib/capture';
 import { cn } from '@/lib/utils';
 
 /* Tiny visual previews used inside the editor's ThumbPicker tiles. They're
@@ -49,21 +49,6 @@ const SHADOW_CSS: Record<ShadowPreset, string> = {
 export function ShadowThumb({ shadow }: { shadow: ShadowPreset }) {
   return (
     <div className="bg-background size-7 rounded-[5px]" style={{ boxShadow: SHADOW_CSS[shadow] }} />
-  );
-}
-
-const TILT_TRANSFORM: Record<TiltPreset, string> = {
-  none: 'none',
-  left: 'perspective(120px) rotateY(20deg)',
-  right: 'perspective(120px) rotateY(-20deg)',
-};
-
-export function TiltThumb({ tilt }: { tilt: TiltPreset }) {
-  return (
-    <div
-      className="from-brand/70 to-brand-2/70 h-7 w-9 rounded-[4px] bg-gradient-to-br shadow"
-      style={{ transform: TILT_TRANSFORM[tilt] }}
-    />
   );
 }
 

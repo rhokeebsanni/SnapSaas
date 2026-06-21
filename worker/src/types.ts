@@ -29,6 +29,10 @@ export interface CaptureSettings {
   shadowDirection?: number;
   /** Soft colored glow behind the device, tinted to match the bg (default off). */
   glow?: boolean;
+  /** Film grain on the background (0–100; default 8). */
+  noise?: number;
+  /** Edge vignette darkening on the background (0–100; default 0). */
+  vignette?: number;
   /** Drop the device frame and place the bare screenshot (default false). */
   hideMockup?: boolean;
   /** 3D rotation in degrees: X tips, Y turns, Z spins (default 0). */

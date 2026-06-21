@@ -546,6 +546,42 @@ export function Editor({
                 />
               </button>
             </Control>
+
+            <Control
+              label="Texture"
+              hint="Film grain adds richness and kills gradient banding; vignette darkens the edges. Applied to the background only."
+            >
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center justify-between text-xs">
+                    <span>Grain</span>
+                    <span className="font-mono tabular-nums">{s.noise}</span>
+                  </div>
+                  <Slider
+                    value={[s.noise]}
+                    onValueChange={(v: number[]) => onEdit(s.setNoise)(v[0])}
+                    min={0}
+                    max={100}
+                    step={2}
+                    aria-label="Grain"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center justify-between text-xs">
+                    <span>Vignette</span>
+                    <span className="font-mono tabular-nums">{s.vignette}</span>
+                  </div>
+                  <Slider
+                    value={[s.vignette]}
+                    onValueChange={(v: number[]) => onEdit(s.setVignette)(v[0])}
+                    min={0}
+                    max={100}
+                    step={5}
+                    aria-label="Vignette"
+                  />
+                </div>
+              </div>
+            </Control>
           </Section>
 
           <Section title="Export" icon={<Download className="size-4" />}>
@@ -656,6 +692,8 @@ export function Editor({
                   shadowOpacity={s.shadowOpacity}
                   shadowDirection={s.shadowDirection}
                   hideMockup={s.hideMockup}
+                  noise={s.noise}
+                  vignette={s.vignette}
                   watermark={watermark}
                   customGradient={s.background === 'custom' ? s.customGradient : undefined}
                 />

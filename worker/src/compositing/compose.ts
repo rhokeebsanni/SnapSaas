@@ -15,6 +15,50 @@ function escapeXml(value: string): string {
   );
 }
 
+/**
+ * Bake premium texture into a background: gaussian film grain (overlay blend,
+ * kills banding + adds richness) and an edge vignette. Both are tasteful and
+ * subtle by default; applied to the background only so the screenshot stays
+ * crisp. Returns a rasterized PNG buffer.
+ */
+async function enhanceBackground(
+  bgSvg: Buffer,
+  width: number,
+  height: number,
+  noise: number,
+  vignette: number,
+): Promise<Buffer> {
+  if (noise <= 0 && vignette <= 0) return bgSvg;
+  const overlays: sharp.OverlayOptions[] = [];
+
+  if (noise > 0) {
+    // sigma 0..26 → subtle to strong grain. Default (8) lands around sigma 7.
+    const sigma = Math.max(1, (noise / 100) * 26);
+    const grain = await sharp({
+      create: {
+        width,
+        height,
+        channels: 3,
+        background: { r: 128, g: 128, b: 128 },
+        noise: { type: 'gaussian', mean: 128, sigma },
+      },
+    })
+      .png()
+      .toBuffer();
+    overlays.push({ input: grain, blend: 'overlay' });
+  }
+
+  if (vignette > 0) {
+    const strength = (vignette / 100) * 0.7;
+    const vig = Buffer.from(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><defs><radialGradient id="v" cx="50%" cy="50%" r="72%"><stop offset="50%" stop-color="#000000" stop-opacity="0"/><stop offset="100%" stop-color="#000000" stop-opacity="${strength.toFixed(3)}"/></radialGradient></defs><rect width="${width}" height="${height}" fill="url(#v)"/></svg>`,
+    );
+    overlays.push({ input: vig });
+  }
+
+  return sharp(bgSvg).composite(overlays).png().toBuffer();
+}
+
 function watermarkSvg(width: number, height: number, scale: number): Buffer {
   const px = (v: number) => Math.round(v * scale);
   const text = 'Made with SnapSaas';
@@ -119,8 +163,15 @@ export async function composeAsset(shot: Buffer, settings: CaptureSettings): Pro
         } satisfies BackgroundPreset)
       : getBackground(settings.background);
 
-  // Background layer.
-  const background = Buffer.from(renderBackgroundSvg(bg, canvasW, canvasH));
+  // Background layer — with optional film grain + vignette baked in (applied to
+  // the background only, so the screenshot itself stays pristine and sharp).
+  const background = await enhanceBackground(
+    Buffer.from(renderBackgroundSvg(bg, canvasW, canvasH)),
+    canvasW,
+    canvasH,
+    settings.noise ?? 0,
+    settings.vignette ?? 0,
+  );
 
   const layers: sharp.OverlayOptions[] = [];
 

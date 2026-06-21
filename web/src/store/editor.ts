@@ -34,6 +34,8 @@ interface EditorState {
   shadowOpacity: number | null;
   shadowDirection: number;
   glow: boolean;
+  noise: number;
+  vignette: number;
   hideMockup: boolean;
   rotateX: number;
   rotateY: number;
@@ -66,6 +68,8 @@ interface EditorState {
   setGlow: (glow: boolean) => void;
   setShadowOpacity: (shadowOpacity: number | null) => void;
   setShadowDirection: (shadowDirection: number) => void;
+  setNoise: (noise: number) => void;
+  setVignette: (vignette: number) => void;
   setHideMockup: (hideMockup: boolean) => void;
   setRotateX: (rotateX: number) => void;
   setRotateY: (rotateY: number) => void;
@@ -104,6 +108,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   shadowOpacity: null,
   shadowDirection: 180,
   glow: false,
+  noise: 8,
+  vignette: 0,
   hideMockup: false,
   rotateX: 0,
   rotateY: 0,
@@ -135,6 +141,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setGlow: (glow) => set({ glow }),
   setShadowOpacity: (shadowOpacity) => set({ shadowOpacity }),
   setShadowDirection: (shadowDirection) => set({ shadowDirection }),
+  setNoise: (noise) => set({ noise }),
+  setVignette: (vignette) => set({ vignette }),
   setHideMockup: (hideMockup) => set({ hideMockup }),
   setRotateX: (rotateX) => set({ rotateX }),
   setRotateY: (rotateY) => set({ rotateY }),
@@ -169,6 +177,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       shadowOpacity,
       shadowDirection,
       glow,
+      noise,
+      vignette,
       hideMockup,
       rotateX,
       rotateY,
@@ -220,6 +230,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           shadow,
           shadowDirection,
           glow,
+          noise,
+          vignette,
           hideMockup,
           rotateX,
           rotateY,

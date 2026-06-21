@@ -27,6 +27,10 @@ export const captureSettingsSchema = z.object({
   shadowOpacity: z.number().int().min(0).max(100).optional(),
   shadowDirection: z.number().int().min(0).max(360).default(180),
   glow: z.boolean().default(false),
+  // Premium texture on the background (not the screenshot): film grain kills
+  // gradient banding and adds richness; vignette darkens the edges. 0–100.
+  noise: z.number().int().min(0).max(100).default(8),
+  vignette: z.number().int().min(0).max(100).default(0),
   // Hide the device frame/chrome and just place the bare screenshot.
   hideMockup: z.boolean().default(false),
   // 3D rotation in degrees. X tips top/bottom, Y turns left/right, Z spins.

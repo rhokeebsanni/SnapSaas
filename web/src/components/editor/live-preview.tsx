@@ -75,6 +75,8 @@ export function LivePreview({
   shadowOpacity = null,
   shadowDirection = 180,
   hideMockup = false,
+  noise = 0,
+  vignette = 0,
   watermark,
   customGradient,
 }: {
@@ -93,6 +95,8 @@ export function LivePreview({
   shadowOpacity?: number | null;
   shadowDirection?: number;
   hideMockup?: boolean;
+  noise?: number;
+  vignette?: number;
   watermark?: boolean;
   customGradient?: { colors: string[]; angle: number };
 }) {
@@ -136,6 +140,28 @@ export function LivePreview({
       )}
       style={{ background: bgCss, padding: `${padPct}%` }}
     >
+      {/* Film grain on the background only (mirrors the worker). */}
+      {noise > 0 && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 mix-blend-overlay"
+          style={{
+            opacity: Math.min(0.6, noise / 100),
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          }}
+        />
+      )}
+      {/* Edge vignette. */}
+      {vignette > 0 && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            background: `radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,${((vignette / 100) * 0.7).toFixed(3)}) 100%)`,
+          }}
+        />
+      )}
       {/* Watermark — mirrors the worker's "Made with SnapSaas" so the preview
           shows exactly what a free-plan export will look like. */}
       {watermark && (
@@ -148,7 +174,7 @@ export function LivePreview({
       )}
       <div
         className={cn(
-          'relative transition-transform duration-500 ease-out',
+          'relative z-10 transition-transform duration-500 ease-out',
           // Phone: the device fills the box's remaining height (padding already
           // took its share), so adding padding shrinks the phone to keep the
           // whole composition in view. Wide frames stay width-bound.

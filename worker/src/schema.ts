@@ -13,6 +13,8 @@ export const captureSettingsSchema = z.object({
   shadowOpacity: z.number().min(0).max(100).optional(),
   shadowDirection: z.number().min(0).max(360).default(180),
   glow: z.boolean().default(false),
+  noise: z.number().min(0).max(100).default(8),
+  vignette: z.number().min(0).max(100).default(0),
   hideMockup: z.boolean().default(false),
   rotateX: z.number().min(-60).max(60).default(0),
   rotateY: z.number().min(-60).max(60).default(0),

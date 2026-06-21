@@ -103,21 +103,37 @@ async function browserFrame(
   const toolbar = px(38);
   const deviceH = toolbar + h;
 
-  const dot = (cx: number, color: string) =>
-    `<circle cx="${cx}" cy="${toolbar / 2}" r="${px(6)}" fill="${color}"/>`;
   const pillW = Math.min(w * 0.5, px(420));
   const pillX = (w - pillW) / 2;
-  // A faint top highlight sells the glass look.
-  const glassEdge = cfg.glass
-    ? `<rect width="${w}" height="${toolbar}" fill="url(#sheen)"/><defs><linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.35)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>`
-    : '';
+  const cy = toolbar / 2;
+  const icon = cfg.pillText;
+  // Depth: a subtle top highlight + a 1px separator line under the toolbar.
+  const sheen = cfg.glass
+    ? `<rect width="${w}" height="${toolbar}" fill="url(#sheen)"/>`
+    : `<rect width="${w}" height="${Math.round(toolbar * 0.5)}" fill="${cfg.dark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)'}"/>`;
+  const sep = `<rect x="0" y="${toolbar - px(1)}" width="${w}" height="${px(1)}" fill="${cfg.dark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.08)'}"/>`;
+  // Traffic lights with a faint inner highlight for a glossy, real-button feel.
+  const light = (cx: number, color: string) =>
+    `<circle cx="${cx}" cy="${cy}" r="${px(6)}" fill="${color}"/><circle cx="${cx}" cy="${cy - px(1.4)}" r="${px(2.4)}" fill="rgba(255,255,255,0.35)"/>`;
+  // Back / forward chevrons (muted) so it reads as a real browser.
+  const navX = px(92);
+  const chev = (cx: number, dir: 1 | -1) =>
+    `<path d="M ${cx + dir * px(3)} ${cy - px(4)} L ${cx - dir * px(3)} ${cy} L ${cx + dir * px(3)} ${cy + px(4)}" fill="none" stroke="${icon}" stroke-width="${px(1.6)}" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>`;
+  // A small lock glyph before the URL.
+  const lockX = pillX + px(16);
+  const lock = `<g opacity="0.6"><rect x="${lockX - px(3.5)}" y="${cy - px(0.5)}" width="${px(7)}" height="${px(6)}" rx="${px(1.4)}" fill="${icon}"/><path d="M ${lockX - px(2)} ${cy - px(0.5)} v ${-px(2)} a ${px(2)} ${px(2)} 0 0 1 ${px(4)} 0 v ${px(2)}" fill="none" stroke="${icon}" stroke-width="${px(1.3)}"/></g>`;
+
   const toolbarSvg = Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${toolbar}">
+      <defs><linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.35)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>
       <rect width="${w}" height="${toolbar}" fill="${cfg.chrome}"/>
-      ${glassEdge}
-      ${dot(px(22), '#ff5f57')}${dot(px(42), '#febc2e')}${dot(px(62), '#28c840')}
-      <rect x="${pillX}" y="${toolbar * 0.26}" width="${pillW}" height="${toolbar * 0.48}" rx="${px(7)}" fill="${cfg.pill}"/>
-      <text x="${w / 2}" y="${toolbar / 2}" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="${px(13)}" fill="${cfg.pillText}" text-anchor="middle" dominant-baseline="central">${escapeXml(url)}</text>
+      ${sheen}
+      ${light(px(22), '#ff5f57')}${light(px(42), '#febc2e')}${light(px(62), '#28c840')}
+      ${chev(navX, 1)}${chev(navX + px(20), -1)}
+      <rect x="${pillX}" y="${toolbar * 0.24}" width="${pillW}" height="${toolbar * 0.52}" rx="${px(8)}" fill="${cfg.pill}" stroke="${cfg.dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}" stroke-width="${px(1)}"/>
+      ${lock}
+      <text x="${pillX + px(28)}" y="${cy}" font-family="-apple-system, Segoe UI, Roboto, sans-serif" font-size="${px(13)}" fill="${cfg.pillText}" dominant-baseline="central">${escapeXml(url)}</text>
+      ${sep}
     </svg>`,
   );
 

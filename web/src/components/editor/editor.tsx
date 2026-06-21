@@ -90,6 +90,20 @@ function clampSize(v: number): number {
   return Math.min(4000, Math.max(200, Math.round(v)));
 }
 
+// One "screen" of scroll ≈ the capture viewport height, so the scroll-offset
+// control can speak in screens ("1 screen down") instead of raw pixels.
+const SCREEN_PX = 800;
+const FRACTIONS: Record<number, string> = { 0.25: '¼', 0.5: '½', 0.75: '¾' };
+function scrollLabel(px: number): string {
+  if (px <= 0) return 'Top of page';
+  const screens = px / SCREEN_PX;
+  const whole = Math.floor(screens);
+  const frac = Math.round((screens - whole) * 100) / 100;
+  const fracStr = FRACTIONS[frac] ?? '';
+  const num = whole === 0 ? fracStr || screens.toFixed(2) : `${whole}${fracStr}`;
+  return `${num} screen${screens === 1 ? '' : 's'} down`;
+}
+
 export function Editor({
   maxScale,
   allTemplates,
@@ -315,20 +329,21 @@ export function Editor({
 
             {s.mode === 'viewport' && (
               <Control
-                label="Capture from"
-                hint="Scroll down this many pixels before capturing — to frame a section further down the page."
+                label="Start position"
+                hint="Where on the page to start the shot — drag to scroll past the top before capturing."
               >
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex items-center justify-end text-xs">
+                    <span className="font-medium">{scrollLabel(s.scrollY)}</span>
+                  </div>
+                  <Slider
+                    value={[s.scrollY]}
+                    onValueChange={(v: number[]) => onEdit(s.setScrollY)(v[0])}
                     min={0}
-                    max={20000}
-                    step={100}
-                    value={s.scrollY}
-                    onChange={(e) => onEdit(s.setScrollY)(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-28"
+                    max={SCREEN_PX * 4}
+                    step={SCREEN_PX / 4}
+                    aria-label="Start position"
                   />
-                  <span className="text-muted-foreground text-sm">px from top</span>
                 </div>
               </Control>
             )}

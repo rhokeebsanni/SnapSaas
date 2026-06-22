@@ -6,7 +6,7 @@ import { assertSafeUrl } from '../util/url-safety';
 let browserPromise: Promise<Browser> | null = null;
 
 /** Launch a single shared Chromium instance and reuse it across captures. */
-async function getBrowser(): Promise<Browser> {
+export async function getBrowser(): Promise<Browser> {
   if (browserPromise) {
     const existing = await browserPromise;
     if (existing.isConnected()) return existing;

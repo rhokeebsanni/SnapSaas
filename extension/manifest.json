@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "SnapSaas — Capture Tab",
+  "version": "0.1.0",
+  "description": "Capture the visible area of your current tab — including pages you're signed into — and send it to SnapSaas for framing, backgrounds, and export.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Capture this tab with SnapSaas",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["activeTab", "tabs"]
+}

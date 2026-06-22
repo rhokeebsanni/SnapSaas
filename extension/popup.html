@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SnapSaas — Capture Tab</title>
+    <style>
+      :root {
+        --brand: #7c3aed;
+        --brand-2: #06b6d4;
+        --bg: #0b0b12;
+        --card: #14141d;
+        --border: #26263400;
+        --text: #f4f4f5;
+        --muted: #a1a1aa;
+        --ok: #22c55e;
+        --err: #f87171;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        width: 320px;
+        font: 13px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+      .head {
+        display: flex; align-items: center; gap: 10px;
+        padding: 14px 16px 10px;
+      }
+      .logo {
+        width: 26px; height: 26px; border-radius: 8px;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        flex: none;
+      }
+      .title { font-weight: 700; font-size: 14px; }
+      .sub { color: var(--muted); font-size: 11px; margin-top: 1px; }
+      .body { padding: 6px 16px 16px; }
+      button.capture {
+        width: 100%;
+        border: 0; cursor: pointer;
+        padding: 11px 14px; border-radius: 11px;
+        font-weight: 600; font-size: 13px; color: #fff;
+        background: linear-gradient(135deg, var(--brand), #6d28d9);
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: filter .15s ease, transform .05s ease;
+      }
+      button.capture:hover { filter: brightness(1.08); }
+      button.capture:active { transform: translateY(1px); }
+      button.capture:disabled { opacity: .6; cursor: progress; filter: none; }
+      .status {
+        margin-top: 12px; min-height: 18px;
+        font-size: 12px; color: var(--muted);
+        display: flex; align-items: center; gap: 7px;
+      }
+      .status.ok { color: var(--ok); }
+      .status.err { color: var(--err); }
+      .dot {
+        width: 7px; height: 7px; border-radius: 50%; flex: none;
+        background: currentColor;
+      }
+      .preview {
+        margin-top: 12px; border-radius: 10px; overflow: hidden;
+        border: 1px solid #2a2a38; background: #0e0e16;
+        display: none;
+      }
+      .preview img { display: block; width: 100%; height: auto; }
+      .meta {
+        margin-top: 10px; font-size: 11px; color: var(--muted);
+        word-break: break-all; line-height: 1.4;
+      }
+      .settings {
+        margin-top: 14px; padding-top: 12px; border-top: 1px solid #20202c;
+      }
+      .settings label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+      .settings input {
+        width: 100%; padding: 7px 9px; border-radius: 8px;
+        border: 1px solid #2a2a38; background: #0e0e16; color: var(--text);
+        font: 12px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .settings input:focus { outline: none; border-color: var(--brand); }
+      a.link { color: #a78bfa; }
+    </style>
+  </head>
+  <body>
+    <div class="head">
+      <div class="logo"></div>
+      <div>
+        <div class="title">SnapSaas</div>
+        <div class="sub">Capture an authenticated tab</div>
+      </div>
+    </div>
+
+    <div class="body">
+      <button class="capture" id="capture" type="button">
+        <span>📸</span> Capture Tab
+      </button>
+
+      <div class="status" id="status"><span class="dot"></span><span id="status-text">Ready</span></div>
+
+      <div class="preview" id="preview"><img id="preview-img" alt="Captured tab preview" /></div>
+      <div class="meta" id="meta"></div>
+
+      <div class="settings">
+        <label for="endpoint">SnapSaas upload endpoint</label>
+        <input id="endpoint" type="text" spellcheck="false" placeholder="http://localhost:3000/api/capture/upload" />
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

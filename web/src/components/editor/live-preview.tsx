@@ -5,7 +5,9 @@ import * as React from 'react';
 import { DeviceFrame, MockSite } from '@/components/device-frame';
 import { getBackground, glowColorForCss } from '@/lib/templates';
 import type { ShadowPreset, WindowStyle, FrameId } from '@/lib/capture';
+import type { AnimationPresetId } from '@/lib/animation';
 import { cn } from '@/lib/utils';
+import { useWaapiAnimation } from './use-waapi-animation';
 
 /**
  * A faithful, live preview of the export. Every editor control maps to a real
@@ -79,6 +81,10 @@ export function LivePreview({
   vignette = 0,
   watermark,
   customGradient,
+  animPreset = null,
+  animSpeed = 50,
+  animIntensity = 50,
+  animSmoothness = 50,
 }: {
   url: string;
   frame: FrameId;
@@ -99,7 +105,15 @@ export function LivePreview({
   vignette?: number;
   watermark?: boolean;
   customGradient?: { colors: string[]; angle: number };
+  animPreset?: AnimationPresetId | null;
+  animSpeed?: number;
+  animIntensity?: number;
+  animSmoothness?: number;
 }) {
+  // The chosen motion preset loops on this wrapper (scale/translate), composing
+  // with the 3D rotate on the parent. Updates live as the sliders change.
+  const motionRef = React.useRef<HTMLDivElement>(null);
+  useWaapiAnimation(motionRef, animPreset, animSpeed, animIntensity, animSmoothness);
   const preset = getBackground(background);
   // A custom gradient overrides the preset's css when active.
   const bgCss =
@@ -193,31 +207,37 @@ export function LivePreview({
             style={{ background: glowColor }}
           />
         )}
-        {hideMockup ? (
-          // Hide-mockup: just the bare screenshot, softly rounded.
-          <div
-            className={cn(
-              'overflow-hidden rounded-xl transition-shadow duration-300',
-              isPhone ? 'aspect-[9/16] h-full w-auto' : 'aspect-[16/10] w-full',
-            )}
-            style={{ boxShadow: deviceShadow, ...borderStyle }}
-          >
-            <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
-          </div>
-        ) : (
-          <DeviceFrame
-            variant={frame}
-            url={url || 'yoursite.com'}
-            windowStyle={windowStyle}
-            className={cn(
-              'transition-shadow duration-300',
-              isPhone ? 'h-full w-auto max-w-none' : 'w-full',
-            )}
-            style={{ boxShadow: deviceShadow, ...borderStyle }}
-          >
-            <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
-          </DeviceFrame>
-        )}
+        {/* Motion wrapper — the WAAPI preset animates this element. */}
+        <div
+          ref={motionRef}
+          className={cn('will-change-transform', isPhone ? 'h-full w-auto' : 'w-full')}
+        >
+          {hideMockup ? (
+            // Hide-mockup: just the bare screenshot, softly rounded.
+            <div
+              className={cn(
+                'overflow-hidden rounded-xl transition-shadow duration-300',
+                isPhone ? 'aspect-[9/16] h-full w-auto' : 'aspect-[16/10] w-full',
+              )}
+              style={{ boxShadow: deviceShadow, ...borderStyle }}
+            >
+              <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
+            </div>
+          ) : (
+            <DeviceFrame
+              variant={frame}
+              url={url || 'yoursite.com'}
+              windowStyle={windowStyle}
+              className={cn(
+                'transition-shadow duration-300',
+                isPhone ? 'h-full w-auto max-w-none' : 'w-full',
+              )}
+              style={{ boxShadow: deviceShadow, ...borderStyle }}
+            >
+              <MockSite tone={TONE_BY_BG[background] ?? 'violet'} />
+            </DeviceFrame>
+          )}
+        </div>
       </div>
     </div>
   );

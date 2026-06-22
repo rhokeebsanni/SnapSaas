@@ -10,6 +10,7 @@ import type {
   ShadowPreset,
   WindowStyle,
 } from '@/lib/capture';
+import type { AnimationPresetId } from '@/lib/animation';
 
 export type RunStatus = 'idle' | 'submitting' | 'queued' | 'processing' | 'done' | 'failed';
 
@@ -51,6 +52,13 @@ interface EditorState {
   animate: boolean;
   animationUrls: string[];
   frameDuration: number;
+  // Motion (WAAPI) — a chosen preset + three slider params (0..100) that drive
+  // the live preview and (once wired) the deterministic MP4/GIF export. `null`
+  // preset = no motion (static export).
+  animPreset: AnimationPresetId | null;
+  animSpeed: number;
+  animIntensity: number;
+  animSmoothness: number;
 
   status: RunStatus;
   jobId: string | null;
@@ -84,6 +92,10 @@ interface EditorState {
   setAnimate: (animate: boolean) => void;
   setAnimationUrls: (animationUrls: string[]) => void;
   setFrameDuration: (frameDuration: number) => void;
+  setAnimPreset: (animPreset: AnimationPresetId | null) => void;
+  setAnimSpeed: (animSpeed: number) => void;
+  setAnimIntensity: (animIntensity: number) => void;
+  setAnimSmoothness: (animSmoothness: number) => void;
   /** Apply a bundle of style settings at once (from a one-click template). */
   applyTemplate: (settings: Partial<EditorState>) => void;
 
@@ -124,6 +136,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   animate: false,
   animationUrls: [],
   frameDuration: 1200,
+  animPreset: null,
+  animSpeed: 50,
+  animIntensity: 50,
+  animSmoothness: 50,
 
   status: 'idle',
   jobId: null,
@@ -157,6 +173,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setAnimate: (animate) => set({ animate }),
   setAnimationUrls: (animationUrls) => set({ animationUrls }),
   setFrameDuration: (frameDuration) => set({ frameDuration }),
+  setAnimPreset: (animPreset) => set({ animPreset }),
+  setAnimSpeed: (animSpeed) => set({ animSpeed }),
+  setAnimIntensity: (animIntensity) => set({ animIntensity }),
+  setAnimSmoothness: (animSmoothness) => set({ animSmoothness }),
   applyTemplate: (settings) =>
     // Applying a template changes the look, so drop any shown result back to the
     // live preview.

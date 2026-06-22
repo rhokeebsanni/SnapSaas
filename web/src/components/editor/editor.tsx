@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Clapperboard,
   Download,
+  Film,
   ImageOff,
   LoaderCircle,
   RotateCcw,
@@ -25,6 +26,7 @@ import { TemplateGallery } from '@/components/editor/template-gallery';
 import { GradientBuilder } from '@/components/editor/gradient-builder';
 import { MobileStudio } from '@/components/editor/mobile-studio';
 import { AnimateControls } from '@/components/editor/animate-controls';
+import { AnimationPanel } from '@/components/editor/animation-panel';
 import { Section } from '@/components/editor/section';
 import { Segmented } from '@/components/editor/segmented';
 import { ThumbPicker } from '@/components/editor/thumb-picker';
@@ -656,6 +658,10 @@ export function Editor({
             </Control>
           </Section>
 
+          <Section title="Motion" icon={<Film className="size-4" />} defaultOpen={false}>
+            <AnimationPanel canAnimate={canAnimate} />
+          </Section>
+
           <Section title="Animate" icon={<Clapperboard className="size-4" />} defaultOpen={false}>
             <AnimateControls canAnimate={canAnimate} />
           </Section>
@@ -711,6 +717,10 @@ export function Editor({
                   vignette={s.vignette}
                   watermark={watermark}
                   customGradient={s.background === 'custom' ? s.customGradient : undefined}
+                  animPreset={s.animPreset}
+                  animSpeed={s.animSpeed}
+                  animIntensity={s.animIntensity}
+                  animSmoothness={s.animSmoothness}
                 />
               </div>
             )}

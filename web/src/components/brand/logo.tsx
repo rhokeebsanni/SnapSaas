@@ -9,17 +9,20 @@ export function LogoMark({ className }: { className?: string }) {
       )}
       aria-hidden
     >
-      {/* A camera-shutter / snap glyph. */}
+      {/* A capture-frame glyph: rounded viewfinder with corner brackets and a
+          focal dot — "frame + snap", matching what SnapSaas actually does. */}
       <svg viewBox="0 0 24 24" fill="none" className="size-5">
-        <rect x="3" y="6" width="18" height="13" rx="3" fill="currentColor" opacity="0.18" />
+        <rect x="4" y="4" width="16" height="16" rx="4.5" fill="currentColor" opacity="0.16" />
+        {/* Four corner brackets. */}
         <path
-          d="M8 6l1.2-2.1A1 1 0 0 1 10.06 3.4h3.88a1 1 0 0 1 .86.5L16 6"
+          d="M8 4.8H6.3A1.5 1.5 0 0 0 4.8 6.3V8M16 4.8h1.7A1.5 1.5 0 0 1 19.2 6.3V8M8 19.2H6.3A1.5 1.5 0 0 1 4.8 17.7V16M16 19.2h1.7A1.5 1.5 0 0 0 19.2 17.7V16"
           stroke="currentColor"
-          strokeWidth="1.6"
+          strokeWidth="1.7"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx="12" cy="12.5" r="3.4" stroke="currentColor" strokeWidth="1.6" />
+        {/* Focal dot. */}
+        <circle cx="12" cy="12" r="2.6" fill="currentColor" />
       </svg>
     </span>
   );
